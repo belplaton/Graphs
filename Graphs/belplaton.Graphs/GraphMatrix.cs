@@ -3,7 +3,7 @@ using System.Text;
 namespace belplaton.Graphs;
 
 #nullable disable
-public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode : notnull
+public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 {
 	public int Size
 	{
@@ -88,8 +88,8 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 	private TData[] _nodeData;
 	private double?[,] _adjacencyMatrix;
 	private readonly Dictionary<TNode, int> _keysToIndexes;
-
-	public GraphMatrix(int initialCapacity, GraphSettings? settings = default)
+	
+	public GraphMatrix(int initialCapacity = 4, GraphSettings? settings = default)
 	{
 		Size = 0;
 		Settings = settings ?? default;
@@ -122,7 +122,6 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 			return list;
 		}
 	}
-	
 	public List<(int from, int to, double weight)> GetIncidentRibs()
 	{
 		lock (_operationsLock)
@@ -147,7 +146,6 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 			return edges;
 		}
 	}
-	
 	public List<(int from, int to, double weight)>? GetIncidentRibs(TNode node)
 	{
 		lock (_operationsLock)

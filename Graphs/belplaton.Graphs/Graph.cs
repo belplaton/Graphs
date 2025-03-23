@@ -1,6 +1,6 @@
 namespace belplaton.Graphs
 {
-	public interface IGraph<TNode, TData> where TNode : notnull
+	public interface IGraph<TNode, TData>
 	{
 		public int Size { get; }
 		public int Capacity { get; }
@@ -29,10 +29,5 @@ namespace belplaton.Graphs
 		
 		public bool TryClearEdge(TNode from, TNode to);
 		public void ClearEdge(TNode from, TNode to);
-	}
-
-	public interface IIndexedGraph<TNode> : IGraph<int, TNode>
-	{
-		
 	}
 }
