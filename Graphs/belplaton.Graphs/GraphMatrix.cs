@@ -5,7 +5,13 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 {
 	public int Size
 	{
-		get => _size;
+		get
+		{
+			lock (_operationsLock)
+			{
+				return _size;
+			}
+		}
 		private set
 		{
 			if (_size != value)
@@ -18,7 +24,7 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 					{
 						while (_capacity < value)
 						{
-							_capacity <<= 1;
+							Capacity <<= 1;
 						}
 					}
 				}
@@ -30,33 +36,48 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 		get => _capacity;
 		private set
 		{
-			lock (_capacityLock)
+			_capacity = value;
+			if (_nodes != null) Array.Resize(ref _nodes, value);
+			else _nodes = new TNode[value];
+
+			if (_nodeData != null) Array.Resize(ref _nodeData, value);
+			else _nodeData = new TData[value];
+
+			var tempAdjacencyMatrix = new double?[value, value];
+			for (var i = 0; i < _size; i++)
 			{
-				_capacity = value;
-				if (_nodes != null) Array.Resize(ref _nodes, value);
-				else _nodes = new TNode[value];
-
-				if (_nodeData != null) Array.Resize(ref _nodeData, value);
-				else _nodeData = new TData[value];
-
-				var tempAdjacencyMatrix = new double?[value, value];
-				for (var i = 0; i < Size; i++)
+				for (var j = 0; j < _size; j++)
 				{
-					for (var j = 0; j < Size; j++)
-					{
-						tempAdjacencyMatrix[i, j] = _adjacencyMatrix[i, j];
-					}
+					tempAdjacencyMatrix[i, j] = _adjacencyMatrix[i, j];
 				}
+			}
 
-				_adjacencyMatrix = tempAdjacencyMatrix;
+			_adjacencyMatrix = tempAdjacencyMatrix;
+		}
+	}
+	
+	public GraphSettings Settings { get; }
+	public IReadOnlyList<TNode> Nodes
+	{
+		get
+		{
+			lock (_operationsLock)
+			{
+				return _nodes;
 			}
 		}
 	}
-	public GraphSettings Settings { get; }
-	public IReadOnlyList<TNode> Nodes => _nodes;
-	public IReadOnlyList<TData> NodeData => _nodeData;
-
-	private readonly object _capacityLock = new();
+	public IReadOnlyList<TData> NodeData
+	{
+		get
+		{
+			lock (_operationsLock)
+			{
+				return _nodeData;
+			}
+		}
+	}
+	
 	private readonly object _operationsLock = new();
 
 	private int _size;
@@ -75,24 +96,70 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 	}
 		
 #nullable enable
+	
 	public double?[,] GetRawAdjacencyMatrix()
 	{
-		return _adjacencyMatrix;
+		lock (_operationsLock)
+		{
+			return _adjacencyMatrix;
+		}
 	}
-	public List<(int index, double weight)>? GetRawAdjacencyList(TNode node)
+	public List<(int index, double weight)>? GetAdjacencyList(TNode node)
 	{
 		lock (_operationsLock)
 		{
 			if (!_keysToIndexes.TryGetValue(node, out var fromIndex)) return null;
 
 			var list = new List<(int index, double weight)>();
-			for (var toIndex = 0; toIndex < Size; toIndex++)
+			for (var toIndex = 0; toIndex < _size; toIndex++)
 			{
 				var weight = _adjacencyMatrix[fromIndex, toIndex];
 				if (weight.HasValue) list.Add((toIndex, weight.Value));
 			}
 
 			return list;
+		}
+	}
+	
+	public List<(int from, int to, double weight)> GetIncidentList()
+	{
+		lock (_operationsLock)
+		{
+			var edges = new List<(int from, int to, double weight)>();
+			for (var fromIndex = 0; fromIndex < _size; fromIndex++)
+			{
+				for (var toIndex = 0; toIndex < _size; toIndex++)
+				{
+					var weight = _adjacencyMatrix[fromIndex, toIndex];
+					if (weight.HasValue)
+					{
+						if ((Settings & GraphSettings.IsDirected) != 0 || fromIndex < toIndex)
+						{
+							edges.Add((fromIndex, toIndex, weight.Value));
+						}
+
+					}
+				}
+			}
+
+			return edges;
+		}
+	}
+	
+	public List<(int from, int to, double weight)>? GetIncidentList(TNode node)
+	{
+		lock (_operationsLock)
+		{
+			if (!_keysToIndexes.TryGetValue(node, out var fromIndex)) return null;
+			
+			var edges = new List<(int from, int to, double weight)>();
+			for (var toIndex = 0; toIndex < _size; toIndex++)
+			{
+				var weight = _adjacencyMatrix[fromIndex, toIndex];
+				if (weight.HasValue) edges.Add((fromIndex, toIndex, weight.Value));
+			}
+
+			return edges;
 		}
 	}
 		
@@ -118,7 +185,7 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 	{
 		lock (_operationsLock)
 		{
-			var index = Size;
+			var index = _size;
 			if (_keysToIndexes.TryAdd(node, index))
 			{
 				Size++;
@@ -143,14 +210,14 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 			if (_keysToIndexes.Remove(node, out var index))
 			{
 				Size--;
-				if (index != Size)
+				if (index != _size)
 				{
-					_nodes[index] = _nodes[Size];
-					_nodeData[index] = _nodeData[Size];
-					for (var i = 0; i < Size; i++)
+					_nodes[index] = _nodes[_size];
+					_nodeData[index] = _nodeData[_size];
+					for (var i = 0; i < _size; i++)
 					{
-						_adjacencyMatrix[i, index] = _adjacencyMatrix[i, Size];
-						_adjacencyMatrix[index, i] = _adjacencyMatrix[Size, i];
+						_adjacencyMatrix[i, index] = _adjacencyMatrix[i, _size];
+						_adjacencyMatrix[index, i] = _adjacencyMatrix[_size, i];
 					}
 				}
 

@@ -9,7 +9,9 @@ namespace belplaton.Graphs
 		public IReadOnlyList<TData> NodeData { get; }
 		
 		public double?[,] GetRawAdjacencyMatrix();
-		public List<(int index, double weight)>? GetRawAdjacencyList(TNode node);
+		public List<(int index, double weight)>? GetAdjacencyList(TNode node);
+		public List<(int from, int to, double weight)> GetIncidentList();
+		public List<(int from, int to, double weight)>? GetIncidentList(TNode node);
 		
 		public TData? GetData(TNode node);
 		public void SetData(TNode node, TData data);
