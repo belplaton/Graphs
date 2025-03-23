@@ -1,27 +1,32 @@
 namespace belplaton.Graphs
 {
-	public interface IGraph<TKey, TNode> where TKey : notnull
+	public interface IGraph<TNode, TData> where TNode : notnull
 	{
 		public int Size { get; }
 		public int Capacity { get; }
 		public GraphSettings Settings { get; }
 		public IReadOnlyList<TNode> Nodes { get; }
+		public IReadOnlyList<TData> NodeData { get; }
 		
-		public (double?[,] adjacency, TKey[] keys, TNode[] nodeData) GetRawAdjacencyMatrix();
-		public (List<(int index, double weight)> adjacency, TKey[] keys, TNode[] nodeData)? GetRawAdjacencyList(TKey key);
+		public double?[,] GetRawAdjacencyMatrix();
+		public List<(int index, double weight)>? GetRawAdjacencyList(TNode node);
 		
-		public TNode? GetNode(TKey key);
-		public bool TrySetNode(TKey key, TNode node);
-		public void SetNode(TKey key, TNode node);
+		public TData? GetData(TNode node);
+		public void SetData(TNode node, TData data);
 		
-		public bool? GetEdge(TKey from, TKey to);
-		public double? GetWeight(TKey from, TKey to);
+		public bool TryAddNode(TNode node, TData data);
+		public void AddNode(TNode node, TData data);
 
-		public bool TrySetEdgeData(TKey from, TKey to, double? weight);
-		public void SetEdgeData(TKey from, TKey to, double? weight);
+		public bool RemoveNode(TNode node);
 		
-		public bool TryClearEdge(TKey from, TKey to);
-		public void ClearEdge(TKey from, TKey to);
+		public bool? GetEdge(TNode from, TNode to);
+		public double? GetWeight(TNode from, TNode to);
+
+		public bool TrySetEdgeData(TNode from, TNode to, double? weight);
+		public void SetEdgeData(TNode from, TNode to, double? weight);
+		
+		public bool TryClearEdge(TNode from, TNode to);
+		public void ClearEdge(TNode from, TNode to);
 	}
 
 	public interface IIndexedGraph<TNode> : IGraph<int, TNode>

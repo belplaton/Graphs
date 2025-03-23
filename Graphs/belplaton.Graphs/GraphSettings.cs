@@ -5,6 +5,6 @@ namespace belplaton.Graphs
 	{
 		None = 0,
 		IsDirected = 1 << 0,
-		IsWeighed = 1 << 2
+		IsWeighted = 1 << 1
 	}
 }
