@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace belplaton.Graphs;
 
 #nullable disable
@@ -104,7 +106,7 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 			return _adjacencyMatrix;
 		}
 	}
-	public List<(int index, double weight)>? GetAdjacencyList(TNode node)
+	public List<(int index, double weight)>? GetAdjacencyVertexes(TNode node)
 	{
 		lock (_operationsLock)
 		{
@@ -121,7 +123,7 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 		}
 	}
 	
-	public List<(int from, int to, double weight)> GetIncidentList()
+	public List<(int from, int to, double weight)> GetIncidentRibs()
 	{
 		lock (_operationsLock)
 		{
@@ -146,7 +148,7 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 		}
 	}
 	
-	public List<(int from, int to, double weight)>? GetIncidentList(TNode node)
+	public List<(int from, int to, double weight)>? GetIncidentRibs(TNode node)
 	{
 		lock (_operationsLock)
 		{
@@ -302,6 +304,45 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData> where TNode
 			_adjacencyMatrix[fromIndex, toIndex] = null;
 			if ((Settings & GraphSettings.IsDirected) == 0)
 				_adjacencyMatrix[toIndex, fromIndex] = null;
+		}
+	}
+
+	public override string ToString()
+	{
+		lock (_operationsLock)
+		{
+			var sb = new StringBuilder();
+			sb.AppendLine($"GraphMatrix: Size = {_size}, Settings = {Settings}");
+			
+			sb.Append("Nodes: ");
+			for (var i = 0; i < _size; i++)
+			{
+				sb.Append($"{_nodes[i]}[{i}] ");
+			}
+
+			sb.AppendLine();
+			sb.AppendLine("Adjacency Matrix:");
+			
+			sb.Append("     ");
+			for (var j = 0; j < _size; j++)
+			{
+				sb.Append($"{j,8}");
+			}
+			
+			sb.AppendLine();
+			for (var i = 0; i < _size; i++)
+			{
+				sb.Append($"{i,4}:");
+				for (var j = 0; j < _size; j++)
+				{
+					var value = _adjacencyMatrix[i, j];
+					if (value.HasValue) sb.Append($"{"0.##",8}");
+					else sb.Append($"{"-",8}");
+				}
+				sb.AppendLine();
+			}
+        
+			return sb.ToString();
 		}
 	}
 }
