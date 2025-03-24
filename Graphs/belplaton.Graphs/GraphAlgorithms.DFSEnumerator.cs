@@ -11,15 +11,25 @@ public static partial class GraphAlgorithms
 		private readonly TNode _startNode;
 		private readonly Stack<TNode> _stack;
 		private readonly HashSet<TNode> _visited;
+		private readonly Action<TNode> _action;
 		private bool _isStarted;
 
-		public DFSEnumerator(IGraph<TNode, TData> graph, TNode startNode)
+		public DFSEnumerator(IGraph<TNode, TData> graph, TNode startNode,
+			HashSet<TNode> visited, Action<TNode> action = null)
 		{
 			_graph = graph;
 			_startNode = startNode;
 			_stack = new Stack<TNode>();
-			_visited = new HashSet<TNode>();
+			_visited = visited;
+			_action = action;
 			Current = default;
+			_isStarted = false;
+		}
+		
+		public DFSEnumerator(IGraph<TNode, TData> graph, TNode startNode)
+			: this(graph, startNode, new HashSet<TNode>())
+		{
+
 		}
 
 		public TNode Current { get; private set; }
@@ -47,6 +57,7 @@ public static partial class GraphAlgorithms
 				Current = candidate;
 				_visited.Add(candidate);
 
+				_action?.Invoke(candidate);
 				for (var adjIndex = 0; adjIndex < _graph.Size; adjIndex++)
 				{
 					if (_graph[candidate][adjIndex].HasValue && !_visited.Contains(_graph.Nodes[adjIndex]))
