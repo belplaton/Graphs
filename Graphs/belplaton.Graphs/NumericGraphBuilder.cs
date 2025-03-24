@@ -39,8 +39,8 @@ public class NumericGraphBuilder<TNode> : IGraphBuilder<GraphMatrix<int, TNode>,
 		var graph = new GraphMatrix<int, TNode>(_settings);
 		for (var i = 0; _ribsPayloadData != null && i < _ribsPayloadData.Count; i++)
 		{
-			graph.AddNode(_ribsPayloadData[i].from, default);
-			graph.AddNode(_ribsPayloadData[i].to, default);
+			graph.TryAddNode(_ribsPayloadData[i].from, default);
+			graph.TryAddNode(_ribsPayloadData[i].to, default);
 			graph.SetEdgeData(_ribsPayloadData[i].from, _ribsPayloadData[i].to, _ribsPayloadData[i].weight);
 		}
 

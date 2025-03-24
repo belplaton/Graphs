@@ -13,7 +13,9 @@ internal static class Program
 		
 		var lines = File.ReadAllLines(filePath);
 		var builder = new NumericGraphBuilder<int>();
-		builder.ParsePayloadInput<RibsListNumericGraphInputParser>(lines);
+		builder
+			.SetSettings(GraphSettings.IsDirected | GraphSettings.IsWeighted)
+			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines);
 		
 		var graph = builder.CreateGraph();
 		

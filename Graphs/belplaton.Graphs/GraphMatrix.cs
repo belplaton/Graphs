@@ -206,7 +206,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 	public void AddNode(TNode node, TData data)
 	{
 		if (!TryAddNode(node, data))
-			throw new ArgumentException($"Node with {node} is already exists in Graph!");
+			throw new ArgumentException($"Node with key={node} is already exists in Graph!");
 	}
 	public bool RemoveNode(TNode node)
 	{
@@ -273,9 +273,9 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			if ((Settings & GraphSettings.IsWeighted) == 0 && weight.HasValue)
 				throw new ArgumentException($"Graph is not weighed. Settings: {Settings}");
 			if (!_keysToIndexes.TryGetValue(from, out var fromIndex))
-				throw new ArgumentException($"Key {from} is not presented in Graph!");
+				throw new ArgumentException($"Node with key={from} is not presented in Graph!");
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex))
-				throw new ArgumentException($"Key {to} is not presented in Graph!");
+				throw new ArgumentException($"Node with key={to} is not presented in Graph!");
 
 			_adjacencyMatrix[fromIndex, toIndex] = weight ?? 0;
 			if ((Settings & GraphSettings.IsDirected) == 0)
@@ -300,9 +300,9 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 		lock (_operationsLock)
 		{
 			if (!_keysToIndexes.TryGetValue(from, out var fromIndex))
-				throw new ArgumentException($"Key {from} is not presented in Graph!");
+				throw new ArgumentException($"Node with key={from} is not presented in Graph!");
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex))
-				throw new ArgumentException($"Key {to} is not presented in Graph!");
+				throw new ArgumentException($"Node with key={to} is not presented in Graph!");
 
 			_adjacencyMatrix[fromIndex, toIndex] = null;
 			if ((Settings & GraphSettings.IsDirected) == 0)
@@ -315,7 +315,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 		lock (_operationsLock)
 		{
 			var sb = new StringBuilder();
-			sb.AppendLine($"GraphMatrix: Size = {_size}, Settings = {Settings}");
+			sb.AppendLine($"GraphMatrix: Size={_size}, Settings={Settings}");
 			
 			sb.Append("Nodes: ");
 			for (var i = 0; i < _size; i++)
