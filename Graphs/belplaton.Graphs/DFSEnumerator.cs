@@ -3,21 +3,20 @@ using System.Collections;
 
 namespace belplaton.Graphs;
 
-public struct DFSEnumerator<TGraph, TNode, TData> : IEnumerator<TNode>
-	where TGraph : IGraph<TNode, TData>
+public struct DFSEnumerator<TNode, TData> : IEnumerator<TNode>
 {
-	private readonly TGraph _graph;
-	private readonly int? _startNode;
-	private readonly Stack<int> _stack;
-	private readonly HashSet<int> _visited;
+	private readonly IGraph<TNode, TData> _graph;
+	private readonly TNode _startNode;
+	private readonly Stack<TNode> _stack;
+	private readonly HashSet<TNode> _visited;
 	private bool _isStarted;
 
-	public DFSEnumerator(TGraph graph, TNode startNode)
+	public DFSEnumerator(IGraph<TNode, TData> graph, TNode startNode)
 	{
 		_graph = graph;
-		_startNode = graph.GetIndex(startNode);
-		_stack = new Stack<int>();
-		_visited = new HashSet<int>();
+		_startNode = startNode;
+		_stack = new Stack<TNode>();
+		_visited = new HashSet<TNode>();
 		Current = default;
 	}
     
@@ -34,23 +33,23 @@ public struct DFSEnumerator<TGraph, TNode, TData> : IEnumerator<TNode>
 				return false;
 			}
 
-			_stack.Push(_startNode.Value);
+			_stack.Push(_startNode);
 			_isStarted = true;
 		}
 		
 		while (_stack.Count > 0)
 		{
-			var candidateIndex = _stack.Pop();
-			if (_visited.Contains(candidateIndex)) continue;
-            
-			Current = _graph.Nodes[candidateIndex];
-			_visited.Add(candidateIndex);
+			var candidate = _stack.Pop();
+			if (_visited.Contains(candidate)) continue;
+
+			Current = candidate;
+			_visited.Add(candidate);
 			
 			for (var adjIndex = 0; adjIndex < _graph.Size; adjIndex++)
 			{
-				if (_graph[candidateIndex][adjIndex].HasValue && !_visited.Contains(adjIndex))
+				if (_graph[candidate][adjIndex].HasValue && !_visited.Contains(_graph.Nodes[adjIndex]))
 				{
-					_stack.Push(adjIndex);
+					_stack.Push(_graph.Nodes[adjIndex]);
 				}
 			}
             
