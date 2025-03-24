@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Text;
 
 namespace belplaton.Graphs;
@@ -46,12 +47,13 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			if (_nodeData != null) Array.Resize(ref _nodeData, value);
 			else _nodeData = new TData[value];
 
-			var tempAdjacencyMatrix = new double?[value, value];
+			var tempAdjacencyMatrix = new double?[value][];
 			for (var i = 0; i < _size; i++)
 			{
+				tempAdjacencyMatrix[i] = new double?[value];
 				for (var j = 0; j < _size; j++)
 				{
-					tempAdjacencyMatrix[i, j] = _adjacencyMatrix[i, j];
+					tempAdjacencyMatrix[i][j] = _adjacencyMatrix[i][j];
 				}
 			}
 
@@ -87,7 +89,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 	private int _capacity;
 	private TNode[] _nodes;
 	private TData[] _nodeData;
-	private double?[,] _adjacencyMatrix;
+	private double?[][] _adjacencyMatrix;
 	private readonly Dictionary<TNode, int> _keysToIndexes;
 	
 	public GraphMatrix(int initialCapacity = 4, GraphSettings settings = GraphSettings.None)
@@ -105,7 +107,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 		
 #nullable enable
 	
-	public double?[,] GetRawAdjacencyMatrix()
+	public IReadOnlyList<IReadOnlyList<double?>> GetRawAdjacencyMatrix()
 	{
 		lock (_operationsLock)
 		{
@@ -121,10 +123,10 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			var list = new List<(int index, double weight)>();
 			for (var toIndex = 0; toIndex < _size; toIndex++)
 			{
-				var weight = _adjacencyMatrix[fromIndex, toIndex];
+				var weight = _adjacencyMatrix[fromIndex][toIndex];
 				if (weight.HasValue) list.Add((toIndex, weight.Value));
 			}
-
+			
 			return list;
 		}
 	}
@@ -137,7 +139,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			{
 				for (var toIndex = 0; toIndex < _size; toIndex++)
 				{
-					var weight = _adjacencyMatrix[fromIndex, toIndex];
+					var weight = _adjacencyMatrix[fromIndex][toIndex];
 					if (weight.HasValue)
 					{
 						if ((Settings & GraphSettings.IsDirected) != 0 || fromIndex < toIndex)
@@ -161,14 +163,40 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			var edges = new List<(int from, int to, double weight)>();
 			for (var toIndex = 0; toIndex < _size; toIndex++)
 			{
-				var weight = _adjacencyMatrix[fromIndex, toIndex];
+				var weight = _adjacencyMatrix[fromIndex][toIndex];
 				if (weight.HasValue) edges.Add((fromIndex, toIndex, weight.Value));
 			}
 
 			return edges;
 		}
 	}
-		
+
+	public IReadOnlyList<double?> this[TNode node]
+	{
+		get
+		{
+			lock (_operationsLock)
+			{
+				if (!_keysToIndexes.TryGetValue(node, out var index))
+					throw new ArgumentException($"Node with key={node} is not presented in Graph!");
+				return _adjacencyMatrix[index];
+			}
+		}
+	}
+
+	public IReadOnlyList<double?> this[int index]
+	{
+		get
+		{
+			lock (_operationsLock)
+			{
+				if (index >= Size)
+					throw new AggregateException($"Index {index} is out of range {Size}!");
+				return _adjacencyMatrix[index];
+			}
+		}
+	}
+
 	public TData? GetData(TNode key)
 	{
 		lock (_operationsLock)
@@ -185,6 +213,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			return default;
 		}
 	}
+	
 	public void SetData(TNode node, TData data)
 	{
 		if (!TryAddNode(node, data))
@@ -230,8 +259,8 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 					_nodeData[index] = _nodeData[_size];
 					for (var i = 0; i < _size; i++)
 					{
-						_adjacencyMatrix[i, index] = _adjacencyMatrix[i, _size];
-						_adjacencyMatrix[index, i] = _adjacencyMatrix[_size, i];
+						_adjacencyMatrix[i][index] = _adjacencyMatrix[i][_size];
+						_adjacencyMatrix[index][i] = _adjacencyMatrix[_size][i];
 					}
 				}
 
@@ -249,7 +278,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 		{
 			if (!_keysToIndexes.TryGetValue(from, out var fromIndex)) return null;
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex)) return null;
-			return _adjacencyMatrix[fromIndex, toIndex].HasValue;
+			return _adjacencyMatrix[fromIndex][toIndex].HasValue;
 		}
 	}
 	public double? GetWeight(TNode from, TNode to)
@@ -258,7 +287,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 		{
 			if (!_keysToIndexes.TryGetValue(from, out var fromIndex)) return null;
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex)) return null;
-			return _adjacencyMatrix[fromIndex, toIndex];
+			return _adjacencyMatrix[fromIndex][toIndex];
 		}
 	}
 	public bool TrySetEdgeData(TNode from, TNode to, double? weight)
@@ -269,9 +298,9 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			if (!_keysToIndexes.TryGetValue(from, out var fromIndex)) return false;
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex)) return false;
 
-			_adjacencyMatrix[fromIndex, toIndex] = weight ?? 0;
+			_adjacencyMatrix[fromIndex][toIndex] = weight ?? 0;
 			if ((Settings & GraphSettings.IsDirected) == 0)
-				_adjacencyMatrix[toIndex, fromIndex] = weight ?? 0;
+				_adjacencyMatrix[toIndex][fromIndex] = weight ?? 0;
 			return true;
 		}
 	}
@@ -286,9 +315,9 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex))
 				throw new ArgumentException($"Node with key={to} is not presented in Graph!");
 
-			_adjacencyMatrix[fromIndex, toIndex] = weight ?? 0;
+			_adjacencyMatrix[fromIndex][toIndex] = weight ?? 0;
 			if ((Settings & GraphSettings.IsDirected) == 0)
-				_adjacencyMatrix[toIndex, fromIndex] = weight ?? 0;
+				_adjacencyMatrix[toIndex][fromIndex] = weight ?? 0;
 		}
 	}
 	public bool TryClearEdge(TNode from, TNode to)
@@ -298,9 +327,9 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			if (!_keysToIndexes.TryGetValue(from, out var fromIndex)) return false;
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex)) return false;
 
-			_adjacencyMatrix[fromIndex, toIndex] = null;
+			_adjacencyMatrix[fromIndex][toIndex] = null;
 			if ((Settings & GraphSettings.IsDirected) == 0)
-				_adjacencyMatrix[toIndex, fromIndex] = null;
+				_adjacencyMatrix[toIndex][fromIndex] = null;
 			return true;
 		}
 	}
@@ -313,9 +342,9 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex))
 				throw new ArgumentException($"Node with key={to} is not presented in Graph!");
 
-			_adjacencyMatrix[fromIndex, toIndex] = null;
+			_adjacencyMatrix[fromIndex][toIndex] = null;
 			if ((Settings & GraphSettings.IsDirected) == 0)
-				_adjacencyMatrix[toIndex, fromIndex] = null;
+				_adjacencyMatrix[toIndex][fromIndex] = null;
 		}
 	}
 
@@ -346,7 +375,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 				sb.Append($"{i,4}:");
 				for (var j = 0; j < _size; j++)
 				{
-					var value = _adjacencyMatrix[i, j];
+					var value = _adjacencyMatrix[i][j];
 					if (value.HasValue) sb.Append($"{value.Value,8:0.##}");
 					else sb.Append($"{"-",8}");
 				}

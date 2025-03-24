@@ -8,10 +8,13 @@ namespace belplaton.Graphs
 		public IReadOnlyList<TNode> Nodes { get; }
 		public IReadOnlyList<TData> NodeData { get; }
 		
-		public double?[,] GetRawAdjacencyMatrix();
+		public IReadOnlyList<IReadOnlyList<double?>> GetRawAdjacencyMatrix();
 		public List<(int index, double weight)>? GetAdjacencyVertexes(TNode node);
 		public List<(int from, int to, double weight)> GetIncidentRibs();
 		public List<(int from, int to, double weight)>? GetIncidentRibs(TNode node);
+		
+		public IReadOnlyList<double?> this[TNode node] { get; }
+		public IReadOnlyList<double?> this[int index] { get; }
 		
 		public TData? GetData(TNode node);
 		public int? GetIndex(TNode node);
