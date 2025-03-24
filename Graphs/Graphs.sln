@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "belplaton.Graphs", "belplaton.Graphs\belplaton.Graphs.csproj", "{18A16DD3-63E8-44D3-B3DB-327A8B347C82}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "waterb.Graphs", "waterb.Graphs\waterb.Graphs.csproj", "{18A16DD3-63E8-44D3-B3DB-327A8B347C82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

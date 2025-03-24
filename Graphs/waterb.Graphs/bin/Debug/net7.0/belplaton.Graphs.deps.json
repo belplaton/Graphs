@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v7.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v7.0": {
+      "belplaton.Graphs/1.0.0": {
+        "runtime": {
+          "belplaton.Graphs.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "belplaton.Graphs/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
