@@ -2,12 +2,17 @@ using System.Globalization;
 
 namespace belplaton.Graphs;
 
+public interface INumericGraphInputCollector
+{
+	public void Collect((int from, int to, double? weight) data);
+	public void ClearInput();
+}
+
 public interface INumericGraphInputParser
 {
 	public bool IsValidWeight(double weight);
 	
-	public bool TryParse(List<(int from, int to, double? weight)> destination, string[] input, bool clearDestination = true);
-	public List<(int from, int to, double? weight)>? Parse(string[] input);
+	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false);
 }
 
 public class RibsListNumericGraphInputParser : INumericGraphInputParser
@@ -24,11 +29,11 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 	
 	public bool IsValidWeight(double weight) => true;
 	
-	public bool TryParse(List<(int from, int to, double? weight)> destination, string[] input, bool clearDestination = true)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
 	{
 		try
 		{
-			if (clearDestination) destination.Clear();
+			if (clearDestination) destination.ClearInput();
 			if (input.Length == 0) return false;
 			
 			var vertexCount = int.Parse(input[0], CultureInfo.InvariantCulture);
@@ -44,7 +49,7 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 				var to = int.Parse(parts[1], CultureInfo.InvariantCulture);
 				double? weight = double.Parse(parts[2], CultureInfo.InvariantCulture);
                     
-				destination.Add((from, to, weight));
+				destination.Collect((from, to, weight));
 			}
 			return true;
 		}
@@ -52,12 +57,6 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 		{
 			return false;
 		}
-	}
-
-	public List<(int from, int to, double? weight)>? Parse(string[] input)
-	{
-		var result = new List<(int from, int to, double? weight)>();
-		return TryParse(result, input) ? result : null;
 	}
 }
 
@@ -77,11 +76,11 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 
 	public bool IsValidWeight(double weight) => true;
 	
-	public bool TryParse(List<(int from, int to, double? weight)> destination, string[] input, bool clearDestination = true)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
 	{
 		try
 		{
-			if (clearDestination) destination.Clear();
+			if (clearDestination) destination.ClearInput();
 			if (input.Length == 0) return false;
                 
 			var vertexCount = int.Parse(input[0], CultureInfo.InvariantCulture);
@@ -98,7 +97,7 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
                         
 					var to = int.Parse(parts[0], CultureInfo.InvariantCulture);
 					var weight = double.Parse(parts[1], CultureInfo.InvariantCulture);
-					destination.Add((i, to, weight));
+					destination.Collect((i, to, weight));
 				}
 			}
 			
@@ -108,12 +107,6 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 		{
 			return false;
 		}
-	}
-
-	public List<(int from, int to, double? weight)>? Parse(string[] input)
-	{
-		var result = new List<(int from, int to, double? weight)>();
-		return TryParse(result, input) ? result : null;
 	}
 }
 
@@ -133,11 +126,11 @@ public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
 	
 	public bool IsValidWeight(double weight) => Math.Abs(weight) > double.Epsilon;
 	
-	public bool TryParse(List<(int from, int to, double? weight)> destination, string[] input, bool clearDestination = true)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
 	{
 		try
 		{
-			destination.Clear();
+			if (clearDestination) destination.ClearInput();
 			if (input.Length == 0) return false;
                 
 			var vertexCount = int.Parse(input[0], CultureInfo.InvariantCulture);
@@ -155,7 +148,7 @@ public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
 					var value = double.Parse(tokens[j], CultureInfo.InvariantCulture);
 					if (IsValidWeight(value))
 					{
-						destination.Add((i, j + 1, value));
+						destination.Collect((i, j + 1, value));
 					}
 				}
 			}
@@ -166,11 +159,5 @@ public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
 		{
 			return false;
 		}
-	}
-
-	public List<(int from, int to, double? weight)>? Parse(string[] input)
-	{
-		var result = new List<(int from, int to, double? weight)>();
-		return TryParse(result, input) ? result : null;
 	}
 }

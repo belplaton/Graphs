@@ -177,6 +177,14 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			return default;
 		}
 	}
+	public int? GetIndex(TNode key)
+	{
+		lock (_operationsLock)
+		{
+			if (_keysToIndexes.TryGetValue(key, out var index)) return index;
+			return default;
+		}
+	}
 	public void SetData(TNode node, TData data)
 	{
 		if (!TryAddNode(node, data))
@@ -311,7 +319,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 		}
 	}
 
-	public override string ToString()
+	public string PrepareGraphInfo()
 	{
 		lock (_operationsLock)
 		{

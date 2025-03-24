@@ -14,6 +14,7 @@ namespace belplaton.Graphs
 		public List<(int from, int to, double weight)>? GetIncidentRibs(TNode node);
 		
 		public TData? GetData(TNode node);
+		public int? GetIndex(TNode node);
 		public void SetData(TNode node, TData data);
 		
 		public bool TryAddNode(TNode node, TData data);

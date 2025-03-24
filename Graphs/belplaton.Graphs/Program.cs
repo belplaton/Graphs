@@ -19,7 +19,7 @@ internal static class Program
 		
 		var graph = builder.CreateGraph();
 		
-		Console.WriteLine(graph.ToString());
+		Console.WriteLine(graph.PrepareGraphInfo());
 		
 		Console.WriteLine("any key to clos...");
 		Console.ReadKey();
