@@ -18,7 +18,6 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 		{
 			if (_size != value)
 			{
-				_size = value;
 				if (value >= _capacity)
 				{
 					if (_capacity == 0) Capacity = 4;
@@ -30,6 +29,8 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 						}
 					}
 				}
+				
+				_size = value;
 			}
 		}
 	}
@@ -317,19 +318,18 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			var sb = new StringBuilder();
 			sb.AppendLine($"GraphMatrix: Size={_size}, Settings={Settings}");
 			
-			sb.Append("Nodes: ");
+			sb.AppendLine("Nodes: ");
 			for (var i = 0; i < _size; i++)
 			{
-				sb.Append($"{_nodes[i]}[{i}] ");
+				sb.Append($"{_nodes[i],4:0}[{i}]");
 			}
-
+			
 			sb.AppendLine();
 			sb.AppendLine("Adjacency Matrix:");
-			
 			sb.Append("     ");
-			for (var j = 0; j < _size; j++)
+			for (var i = 0; i < _size; i++)
 			{
-				sb.Append($"{j,8}");
+				sb.Append($"{i,8:0.##}");
 			}
 			
 			sb.AppendLine();
@@ -339,7 +339,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 				for (var j = 0; j < _size; j++)
 				{
 					var value = _adjacencyMatrix[i, j];
-					if (value.HasValue) sb.Append($"{"0.##",8}");
+					if (value.HasValue) sb.Append($"{value.Value,8:0.##}");
 					else sb.Append($"{"-",8}");
 				}
 				sb.AppendLine();
