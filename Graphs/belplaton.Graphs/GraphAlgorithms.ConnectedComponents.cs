@@ -1,6 +1,6 @@
 namespace belplaton.Graphs;
 
-public static class GraphAlgorithms
+public static partial class GraphAlgorithms
 {
 	public static List<List<TNode>> FindConnectedComponents<TNode, TData>(IGraph<TNode, TData> graph)
 	{
@@ -13,25 +13,24 @@ public static class GraphAlgorithms
 			if (!visited.Contains(node))
 			{
 				var component = new List<TNode>();
-				DFSUtil(graph, node, visited, component);
+				DFSUtil(node, component);
 				components.Add(component);
 			}
 		}
 
 		return components;
-	}
-	
-	private static void DFSUtil<TNode, TData>(IGraph<TNode, TData> graph, TNode current, 
-		HashSet<TNode> visited, List<TNode> component)
-	{
-		visited.Add(current);
-		component.Add(current);
 
-		for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
+		void DFSUtil(TNode current, List<TNode> component)
 		{
-			if (graph[current][adjIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
+			visited.Add(current);
+			component.Add(current);
+
+			for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
 			{
-				DFSUtil(graph, graph.Nodes[adjIndex], visited, component);
+				if (graph[current][adjIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
+				{
+					DFSUtil(graph.Nodes[adjIndex], component);
+				}
 			}
 		}
 	}
