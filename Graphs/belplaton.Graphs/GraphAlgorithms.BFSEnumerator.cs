@@ -14,22 +14,16 @@ public static partial class GraphAlgorithms
 		private readonly Action<TNode> _action;
 		private bool _isStarted;
 
-		public BFSEnumerator(IGraph<TNode, TData> graph, TNode startNode,
-			HashSet<TNode> visited, Action<TNode> action = null)
+		public BFSEnumerator(IGraph<TNode, TData> graph, TNode startNode, Queue<TNode> queue = null,
+			HashSet<TNode> visited = null, Action<TNode> action = null)
 		{
 			_graph = graph;
 			_startNode = startNode;
-			_queue = new Queue<TNode>();
-			_visited = visited;
+			_queue = queue ?? new Queue<TNode>();
+			_visited = visited ?? new HashSet<TNode>();
 			_action = action;
 			Current = default;
 			_isStarted = false;
-		}
-		
-		public BFSEnumerator(IGraph<TNode, TData> graph, TNode startNode)
-			: this(graph, startNode, new HashSet<TNode>())
-		{
-
 		}
 
 		public TNode Current { get; private set; }
