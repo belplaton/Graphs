@@ -21,34 +21,18 @@ public static class GraphAlgorithms
 		return components;
 	}
 	
-	/*
 	private static void DFSUtil<TNode, TData>(IGraph<TNode, TData> graph, TNode current, 
 		HashSet<TNode> visited, List<TNode> component)
 	{
 		visited.Add(current);
 		component.Add(current);
 
-		for (var adjIndex = 0; adjIndex < _graph.Size; adjIndex++)
+		for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
 		{
-			if (_graph[candidate][adjIndex].HasValue && !_visited.Contains(_graph.Nodes[adjIndex]))
+			if (graph[current][adjIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
 			{
-				_stack.Push(_graph.Nodes[adjIndex]);
-			}
-
-		}
-
-		var adjacency = graph.GetAdjacencyVertexes(current);
-		if (adjacency == null)
-			return;
-
-		foreach (var (adjIndex, _) in adjacency)
-		{
-			var adjacentNode = graph.Nodes[adjIndex];
-			if (!visited.Contains(adjacentNode))
-			{
-				DFSUtil(graph, adjacentNode, visited, component);
+				DFSUtil(graph, graph.Nodes[adjIndex], visited, component);
 			}
 		}
 	}
-	*/
 }
