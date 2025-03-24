@@ -89,12 +89,17 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 	private double?[,] _adjacencyMatrix;
 	private readonly Dictionary<TNode, int> _keysToIndexes;
 	
-	public GraphMatrix(int initialCapacity = 4, GraphSettings? settings = default)
+	public GraphMatrix(int initialCapacity = 4, GraphSettings settings = GraphSettings.None)
 	{
 		Size = 0;
-		Settings = settings ?? default;
+		Settings = settings;
 		Capacity = initialCapacity;
 		_keysToIndexes = new Dictionary<TNode, int>(initialCapacity);
+	}
+	
+	public GraphMatrix(GraphSettings settings = GraphSettings.None) : this(4, settings: settings)
+	{
+
 	}
 		
 #nullable enable
