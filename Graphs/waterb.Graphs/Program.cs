@@ -1,4 +1,4 @@
-﻿using belplaton.Graphs;
+﻿using waterb.Graphs;
 
 internal static class Program
 {
