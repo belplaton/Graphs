@@ -114,27 +114,12 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			return _adjacencyMatrix;
 		}
 	}
-	public List<(int index, double weight)>? GetAdjacencyVertexes(TNode node)
-	{
-		lock (_operationsLock)
-		{
-			if (!_keysToIndexes.TryGetValue(node, out var fromIndex)) return null;
 
-			var list = new List<(int index, double weight)>();
-			for (var toIndex = 0; toIndex < _size; toIndex++)
-			{
-				var weight = _adjacencyMatrix[fromIndex][toIndex];
-				if (weight.HasValue) list.Add((toIndex, weight.Value));
-			}
-			
-			return list;
-		}
-	}
-	public List<(int from, int to, double weight)> GetIncidentRibs()
+	public List<RibData<TNode>> GetIncidentRibs()
 	{
 		lock (_operationsLock)
 		{
-			var edges = new List<(int from, int to, double weight)>();
+			var edges = new List<RibData<TNode>>();
 			for (var fromIndex = 0; fromIndex < _size; fromIndex++)
 			{
 				for (var toIndex = 0; toIndex < _size; toIndex++)
@@ -144,7 +129,7 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 					{
 						if ((Settings & GraphSettings.IsDirected) != 0 || fromIndex < toIndex)
 						{
-							edges.Add((fromIndex, toIndex, weight.Value));
+							edges.Add(new RibData<TNode>(_nodes[fromIndex], _nodes[toIndex], weight.Value));
 						}
 
 					}
@@ -154,17 +139,20 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			return edges;
 		}
 	}
-	public List<(int from, int to, double weight)>? GetIncidentRibs(TNode node)
+	public List<RibData<TNode>>? GetIncidentRibs(TNode node)
 	{
 		lock (_operationsLock)
 		{
 			if (!_keysToIndexes.TryGetValue(node, out var fromIndex)) return null;
 			
-			var edges = new List<(int from, int to, double weight)>();
+			var edges = new List<RibData<TNode>>();
 			for (var toIndex = 0; toIndex < _size; toIndex++)
 			{
 				var weight = _adjacencyMatrix[fromIndex][toIndex];
-				if (weight.HasValue) edges.Add((fromIndex, toIndex, weight.Value));
+				if (weight.HasValue)
+				{
+					edges.Add(new RibData<TNode>(_nodes[fromIndex], _nodes[toIndex], weight.Value));
+				}
 			}
 
 			return edges;

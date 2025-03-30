@@ -52,7 +52,12 @@ public static partial class GraphAlgorithms
 				_isStarted = true;
 			}
 
-			if (_queue.Count == 0) return false;
+			if (_queue.Count == 0)
+			{
+				Current = default;
+				return false;	
+			}
+			
 			Current = _queue.Dequeue();
 
 			_onPrepareQueueChanges.Invoke(Current, _graph, _queue, _visited);

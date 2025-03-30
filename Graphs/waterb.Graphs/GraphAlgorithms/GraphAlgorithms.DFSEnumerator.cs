@@ -5,18 +5,30 @@ namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
 {
-	public struct DFSEnumerator<TNode, TData> : IEnumerator<TNode>
+	public struct DFSEnumerator<TNode, TData> : IEnumerator<DFSEnumerator<TNode, TData>.DFSNode>
 	{
+		public readonly struct DFSNode
+		{
+			public readonly TNode node;
+			public readonly int depth = -1;
+
+			public DFSNode(TNode node, int depth)
+			{
+				this.node = node;
+				this.depth = depth;
+			}
+		}
+		
 		private readonly IGraph<TNode, TData> _graph;
 		private readonly TNode _startNode;
-		private readonly Stack<TNode> _stack;
+		private readonly Stack<DFSNode> _stack;
 		private readonly HashSet<TNode> _visited;
-		private readonly Action<TNode, IGraph<TNode, TData>, Stack<TNode>, HashSet<TNode>> _onPrepareStackChanges;
+		private readonly Action<DFSNode, IGraph<TNode, TData>, Stack<DFSNode>, HashSet<TNode>> _onPrepareStackChanges;
 		private bool _isStarted;
 
 		public DFSEnumerator(IGraph<TNode, TData> graph, TNode startNode,
-			HashSet<TNode> visited, Stack<TNode> stack,
-			Action<TNode, IGraph<TNode, TData>, Stack<TNode>, HashSet<TNode>> onPrepareStackChanges = null)
+			HashSet<TNode> visited, Stack<DFSNode> stack,
+			Action<DFSNode, IGraph<TNode, TData>, Stack<DFSNode>, HashSet<TNode>> onPrepareStackChanges = null)
 		{
 			_graph = graph;
 			_startNode = startNode;
@@ -28,14 +40,14 @@ public static partial class GraphAlgorithms
 		}
 		
 		public DFSEnumerator(IGraph<TNode, TData> graph, TNode startNode,
-			Action<TNode, IGraph<TNode, TData>, Stack<TNode>, HashSet<TNode>> onPrepareStackChanges = null)
-			: this(graph, startNode, new HashSet<TNode>(), new Stack<TNode>(),
+			Action<DFSNode, IGraph<TNode, TData>, Stack<DFSNode>, HashSet<TNode>> onPrepareStackChanges = null)
+			: this(graph, startNode, new HashSet<TNode>(), new Stack<DFSNode>(),
 				onPrepareStackChanges)
 		{
 
 		}
 
-		public TNode Current { get; private set; }
+		public DFSNode Current { get; private set; }
 
 		object IEnumerator.Current => Current;
 
@@ -48,7 +60,7 @@ public static partial class GraphAlgorithms
 					return false;
 				}
 
-				_stack.Push(_startNode);
+				_stack.Push(new DFSNode(_startNode, 0));
 				_isStarted = true;
 			}
 
@@ -56,26 +68,27 @@ public static partial class GraphAlgorithms
 			{
 				var candidate = _stack.Pop();
 				
-				if (_visited.Contains(candidate)) continue;
+				if (_visited.Contains(candidate.node)) continue;
 
 				Current = candidate;
 				
-				_visited.Add(candidate);
+				_visited.Add(candidate.node);
 				_onPrepareStackChanges.Invoke(candidate, _graph, _stack, _visited);
 				return true;
 			}
 
+			Current = default;
 			return false;
 		}
 
-		private static void OnPrepareStackChangesDefault(TNode current, IGraph<TNode, TData> graph,
-			Stack<TNode> stack, HashSet<TNode> visited)
+		private static void OnPrepareStackChangesDefault(DFSNode current, IGraph<TNode, TData> graph,
+			Stack<DFSNode> stack, HashSet<TNode> visited)
 		{
 			for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
 			{
-				if (graph[current][adjIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
+				if (graph[current.node][adjIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
 				{
-					stack.Push(graph.Nodes[adjIndex]);
+					stack.Push(new DFSNode(graph.Nodes[adjIndex], current.depth + 1));
 				}
 			}
 		}

@@ -3,15 +3,13 @@ namespace waterb.Graphs
 	public interface IGraph<TNode, TData>
 	{
 		public int Size { get; }
-		public int Capacity { get; }
 		public GraphSettings Settings { get; }
 		public IReadOnlyList<TNode> Nodes { get; }
 		public IReadOnlyList<TData> NodeData { get; }
 		
 		public IReadOnlyList<IReadOnlyList<double?>> GetRawAdjacencyMatrix();
-		public List<(int index, double weight)>? GetAdjacencyVertexes(TNode node);
-		public List<(int from, int to, double weight)> GetIncidentRibs();
-		public List<(int from, int to, double weight)>? GetIncidentRibs(TNode node);
+		public List<RibData<TNode>> GetIncidentRibs();
+		public List<RibData<TNode>>? GetIncidentRibs(TNode node);
 		
 		public IReadOnlyList<double?> this[TNode node] { get; }
 		public IReadOnlyList<double?> this[int index] { get; }
