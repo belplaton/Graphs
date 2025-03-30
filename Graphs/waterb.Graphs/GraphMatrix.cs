@@ -48,12 +48,15 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			else _nodeData = new TData[value];
 
 			var tempAdjacencyMatrix = new double?[value][];
-			for (var i = 0; i < _size; i++)
+			for (var i = 0; i < value; i++)
 			{
 				tempAdjacencyMatrix[i] = new double?[value];
-				for (var j = 0; j < _size; j++)
+				if (i < _size)
 				{
-					tempAdjacencyMatrix[i][j] = _adjacencyMatrix[i][j];
+					for (var j = 0; j < _size; j++)
+					{
+						tempAdjacencyMatrix[i][j] = _adjacencyMatrix[i][j];
+					}
 				}
 			}
 
