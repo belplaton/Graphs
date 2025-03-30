@@ -29,7 +29,8 @@ public static partial class GraphAlgorithms
 		
 		public DFSEnumerator(IGraph<TNode, TData> graph, TNode startNode,
 			Action<TNode, IGraph<TNode, TData>, Stack<TNode>, HashSet<TNode>> onPrepareStackChanges = null)
-			: this(graph, startNode, new HashSet<TNode>(), new Stack<TNode>(), onPrepareStackChanges)
+			: this(graph, startNode, new HashSet<TNode>(), new Stack<TNode>(),
+				onPrepareStackChanges)
 		{
 
 		}
@@ -54,11 +55,12 @@ public static partial class GraphAlgorithms
 			while (_stack.Count > 0)
 			{
 				var candidate = _stack.Pop();
+				
 				if (_visited.Contains(candidate)) continue;
 
 				Current = candidate;
+				
 				_visited.Add(candidate);
-
 				_onPrepareStackChanges.Invoke(candidate, _graph, _stack, _visited);
 				return true;
 			}
@@ -86,7 +88,7 @@ public static partial class GraphAlgorithms
 
 		public void Dispose()
 		{
-
+			
 		}
 	}
 }
