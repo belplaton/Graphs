@@ -1,4 +1,5 @@
 ﻿using waterb.Graphs;
+using waterb.Graphs.GraphAlgorithms;
 
 internal static class Program
 {
@@ -14,12 +15,20 @@ internal static class Program
 		var lines = File.ReadAllLines(filePath);
 		var builder = new NumericGraphBuilder<int>();
 		builder
-			.SetSettings(GraphSettings.IsDirected | GraphSettings.IsWeighted)
+			.SetSettings(GraphSettings.IsDirected)
 			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines);
 		
 		var graph = builder.CreateGraph();
 		
 		Console.WriteLine(graph.PrepareGraphInfo());
+
+		HashSet<int>? visited = null;
+		Stack<GraphAlgorithms.DFSEnumerator<int, int>.DFSNode>? stack = null;
+		var comps = graph.FindStrongConnectedComponents(ref visited, ref stack);
+		for (var i = 0; comps != null && i < comps.Count; i++)
+		{
+			Console.WriteLine(comps[i].ToString());
+		}
 		
 		Console.WriteLine("any key to clos...");
 		Console.ReadKey();

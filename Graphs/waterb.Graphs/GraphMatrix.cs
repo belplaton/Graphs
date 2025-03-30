@@ -289,9 +289,9 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			if (!_keysToIndexes.TryGetValue(from, out var fromIndex)) return false;
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex)) return false;
 
-			_adjacencyMatrix[fromIndex][toIndex] = weight ?? 0;
+			_adjacencyMatrix[fromIndex][toIndex] = weight ?? 1;
 			if ((Settings & GraphSettings.IsDirected) == 0)
-				_adjacencyMatrix[toIndex][fromIndex] = weight ?? 0;
+				_adjacencyMatrix[toIndex][fromIndex] = weight ?? 1;
 			return true;
 		}
 	}
@@ -306,9 +306,9 @@ public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			if (!_keysToIndexes.TryGetValue(to, out var toIndex))
 				throw new ArgumentException($"Node with key={to} is not presented in Graph!");
 
-			_adjacencyMatrix[fromIndex][toIndex] = weight ?? 0;
+			_adjacencyMatrix[fromIndex][toIndex] = weight ?? 1;
 			if ((Settings & GraphSettings.IsDirected) == 0)
-				_adjacencyMatrix[toIndex][fromIndex] = weight ?? 0;
+				_adjacencyMatrix[toIndex][fromIndex] = weight ?? 1;
 		}
 	}
 	public bool TryClearEdge(TNode from, TNode to)

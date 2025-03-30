@@ -67,14 +67,12 @@ public static partial class GraphAlgorithms
 			while (_stack.Count > 0)
 			{
 				var candidate = _stack.Pop();
-				
-				if (_visited.Contains(candidate.node)) continue;
-
-				Current = candidate;
-				
-				_visited.Add(candidate.node);
 				_onPrepareStackChanges.Invoke(candidate, _graph, _stack, _visited);
-				return true;
+				if (_visited.Add(candidate.node))
+				{
+					Current = candidate;
+					return true;
+				}
 			}
 
 			Current = default;

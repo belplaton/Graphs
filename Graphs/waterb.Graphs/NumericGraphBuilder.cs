@@ -58,7 +58,8 @@ public class NumericGraphBuilder<TNode> : IGraphBuilder<GraphMatrix<int, TNode>,
 		{
 			graph.SetData(_ribsPayloadData[i].from, default);
 			graph.SetData(_ribsPayloadData[i].to, default);
-			graph.SetEdgeData(_ribsPayloadData[i].from, _ribsPayloadData[i].to, _ribsPayloadData[i].weight);
+			graph.SetEdgeData(_ribsPayloadData[i].from, _ribsPayloadData[i].to,
+				(_settings & GraphSettings.IsWeighted) != 0 ? _ribsPayloadData[i].weight : null);
 		}
 
 		return graph;
