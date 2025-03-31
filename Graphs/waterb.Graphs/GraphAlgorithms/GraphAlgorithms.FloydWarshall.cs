@@ -21,7 +21,8 @@ public static partial class GraphAlgorithms
         {
             for (var i = 0; i < graph.Size; i++)
             {
-                data.nodesDegrees[graph.Nodes[k]] += graph[k][i].HasValue ? 1 : 0;
+                data.nodesDegrees[graph.Nodes[k]] = data.nodesDegrees.GetValueOrDefault(graph.Nodes[k], 0) + 
+                    (graph[k][i].HasValue ? 1 : 0);
                 for (var j = 0; j < graph.Size; j++)
                 {
                     var a = i != j ? (dist[i][j] ?? graph[i][j]).GetWeight() : 0;
@@ -58,9 +59,9 @@ public static partial class GraphAlgorithms
         for (var i = 0; i < graph.Size; i++)
         {
             if (Math.Abs(data.nodesEccentricity[graph.Nodes[i]] - data.diameter) <= double.Epsilon)
-                data.peripheralNodes.Add((i, graph.Nodes[i]));
+                data.peripheralNodes.Add(graph.Nodes[i]);
             if (Math.Abs(data.nodesEccentricity[graph.Nodes[i]] - data.radius) <= double.Epsilon)
-                data.centralNodes.Add((i, graph.Nodes[i]));
+                data.centralNodes.Add(graph.Nodes[i]);
         }
 
         return (data, dist, next);
@@ -110,6 +111,9 @@ public static partial class GraphAlgorithms
                 for (var k = 0; k < component.Nodes.Count; k++)
                 {
                     var otherIndex = graph.GetIndex(component.Nodes[k])!.Value;
+                    currentData.nodesDegrees[graph.Nodes[nodeIndex]] = 
+                        currentData.nodesDegrees.GetValueOrDefault(graph.Nodes[nodeIndex], 0) +
+                        (graph[nodeIndex][otherIndex].HasValue && nodeIndex != otherIndex ? 1 : 0);
                     maxDistance = fwDataPair.Value.dist[nodeIndex][otherIndex] > maxDistance && 
                         fwDataPair.Value.dist[nodeIndex][otherIndex] < double.PositiveInfinity
                         ? fwDataPair.Value.dist[nodeIndex][otherIndex]!.Value : maxDistance;
@@ -132,9 +136,9 @@ public static partial class GraphAlgorithms
             {
                 var nodeIndex = graph.GetIndex(component.Nodes[j])!.Value;
                 if (Math.Abs(currentData.nodesEccentricity[component.Nodes[j]] - currentData.diameter) <= double.Epsilon)
-                    currentData.peripheralNodes.Add((nodeIndex, component.Nodes[j]));
+                    currentData.peripheralNodes.Add(component.Nodes[j]);
                 if (Math.Abs(currentData.nodesEccentricity[component.Nodes[j]] - currentData.radius) <= double.Epsilon)
-                    currentData.centralNodes.Add((nodeIndex, component.Nodes[j]));
+                    currentData.centralNodes.Add(component.Nodes[j]);
             }
 
             componentsData[component] = currentData;

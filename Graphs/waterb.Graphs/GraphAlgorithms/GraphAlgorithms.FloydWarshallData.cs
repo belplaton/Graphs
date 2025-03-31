@@ -8,8 +8,8 @@ public static partial class GraphAlgorithms
 	{
 		public readonly Dictionary<TNode, int>  nodesDegrees = new();
 		public readonly Dictionary<TNode, double> nodesEccentricity = new();
-		public readonly List<(int index, TNode node)> peripheralNodes = new();
-		public readonly List<(int index, TNode node)> centralNodes = new();
+		public readonly List<TNode> peripheralNodes = new();
+		public readonly List<TNode> centralNodes = new();
 		public double radius = 0;
 		public double diameter = 0;
 
