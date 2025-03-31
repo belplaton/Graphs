@@ -16,8 +16,8 @@ internal static class Program
 		var lines = File.ReadAllLines(filePath);
 		var builder = new NumericGraphBuilder<int>();
 		builder
-			.SetSettings(GraphSettings.IsDirected)
-			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines, false);
+			.SetSettings(GraphSettings.IsDirected | GraphSettings.IsWeighted)
+			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines, true);
 		
 		var graph = builder.CreateGraph();
 		
@@ -33,8 +33,15 @@ internal static class Program
 		}
 		*/
 		
-		var result = graph.PrepareFloydWarshallData();
-		Console.Write(result);
+		var result = graph.ComputeComponentsFloydWarshallData();
+		if (result != null)
+		foreach (var floydWarshallData in result)
+		{
+			Console.Write(floydWarshallData.Key);
+			Console.Write(floydWarshallData.Value);
+			Console.WriteLine();
+			Console.WriteLine();
+		}
 
 		Console.WriteLine("any key to clos...");
 		Console.ReadKey();

@@ -21,11 +21,14 @@ public static partial class GraphAlgorithms
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
+			sb.AppendLine("Vertices list in component:");
+			sb.Append('[');
 			for (var i = 0; i < Nodes.Count; i++)
 			{
 				sb.Append($"{Nodes[i]}");
-				if (i + 1 < Nodes.Count) sb.Append(" - ");
+				if (i + 1 < Nodes.Count) sb.Append(", ");
 			}
+			sb.Append("]\n");
 
 			return sb.ToString();
 		}

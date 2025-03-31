@@ -3,7 +3,7 @@ namespace waterb.Graphs.GraphAlgorithms;
 public static partial class GraphAlgorithms
 {
     public static (FloydWarshallData<TNode> data, double?[][] dist, int?[][] next)? 
-        PrepareFloydWarshallData<TNode, TData>(this IGraph<TNode, TData> graph)
+        ComputeFloydWarshallData<TNode, TData>(this IGraph<TNode, TData> graph)
         where TNode : notnull
     {
         if (graph.Size == 0) return null;
@@ -86,11 +86,11 @@ public static partial class GraphAlgorithms
         return true;
     }
 
-    public static Dictionary<ConnectedComponent<TNode>, FloydWarshallData<TNode>>? ComputeComponentsData
+    public static Dictionary<ConnectedComponent<TNode>, FloydWarshallData<TNode>>? ComputeComponentsFloydWarshallData
         <TNode, TData>(this IGraph<TNode, TData> graph) 
         where TNode : notnull
     {
-        var fwDataPair = graph.PrepareFloydWarshallData();
+        var fwDataPair = graph.ComputeFloydWarshallData();
         if (fwDataPair == null) return null;
         
         HashSet<TNode>? visited = null;
