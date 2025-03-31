@@ -24,7 +24,7 @@ internal static class Program
 
 		HashSet<int>? visited = null;
 		PriorityQueue<(int from, int to), double>? queue = null;
-		var result = graph.BuildMinimumSpanningTreeBoruvka();
+		var result = graph.BuildMinimumSpanningTreePrim(ref visited, ref queue);
 		for (var i = 0; result != null && i < result.Count; i++)
 		{
 			Console.Write($"{result[i]}, ");

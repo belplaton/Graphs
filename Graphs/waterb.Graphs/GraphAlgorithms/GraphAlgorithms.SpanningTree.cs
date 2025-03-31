@@ -15,6 +15,7 @@ public static partial class GraphAlgorithms
 		(priorityQueue ??= new PriorityQueue<(TNode from, TNode to), double>()).Clear();
 		
 		var spanningTreeEdges = new List<RibData<TNode>>();
+		visited.Add(graph.Nodes[0]);
 		for (var i = 0; i < graph.Size; i++)
 		{
 			if (graph[0][i].HasValue)
@@ -23,9 +24,10 @@ public static partial class GraphAlgorithms
 			}
 		}
 		
-		while (visited.Count < graph.Size && priorityQueue.TryDequeue(out var currentEdge, out var currentWeight) &&
-		       visited.Add(currentEdge.to))
+		while (visited.Count < graph.Size && priorityQueue.TryDequeue(out var currentEdge, out var currentWeight))
 		{
+			if (!visited.Add(currentEdge.to)) continue;
+			
 			spanningTreeEdges.Add(new RibData<TNode>(currentEdge.from, currentEdge.to, currentWeight));
 			var currentIndex = graph.GetIndex(currentEdge.to)!.Value;
 			for (var i = 0; i < graph.Size; i++)
