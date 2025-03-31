@@ -5,7 +5,7 @@ namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
 {
-	public readonly struct ConnectedComponent<TNode>
+	public readonly struct ConnectedComponent<TNode> : IEquatable<ConnectedComponent<TNode>>
 	{
 		public List<TNode> Nodes { get; }
 
@@ -29,7 +29,32 @@ public static partial class GraphAlgorithms
 
 			return sb.ToString();
 		}
-	}
+
+		public bool Equals(ConnectedComponent<TNode> other)
+		{
+			return Nodes.Equals(other.Nodes);
+		}
+
+		public override bool Equals(object? obj)
+		{
+			return obj is ConnectedComponent<TNode> other && Equals(other);
+		}
+
+		public override int GetHashCode()
+		{
+			return Nodes.GetHashCode();
+		}
+
+        public static bool operator ==(ConnectedComponent<TNode> left, ConnectedComponent<TNode> right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(ConnectedComponent<TNode> left, ConnectedComponent<TNode> right)
+        {
+            return !(left == right);
+        }
+    }
 	
 	public static List<ConnectedComponent<TNode>>? FindConnectedComponents<TNode, TData>(this IGraph<TNode, TData> graph,
 		ref HashSet<TNode>? visited, ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)

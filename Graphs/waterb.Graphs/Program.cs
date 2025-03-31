@@ -33,7 +33,7 @@ internal static class Program
 		}
 		*/
 		
-		var result = graph.FloydWarshall();
+		var result = graph.PrepareFloydWarshallData();
 		Console.Write(result);
 
 		Console.WriteLine("any key to clos...");
