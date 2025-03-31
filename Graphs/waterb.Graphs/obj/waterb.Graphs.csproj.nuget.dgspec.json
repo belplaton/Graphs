@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Platon\\Documents\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\waterb.Graphs.csproj": {}
+    "E:\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\waterb.Graphs.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Platon\\Documents\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\waterb.Graphs.csproj": {
+    "E:\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\waterb.Graphs.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Platon\\Documents\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\waterb.Graphs.csproj",
+        "projectUniqueName": "E:\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\waterb.Graphs.csproj",
         "projectName": "waterb.Graphs",
-        "projectPath": "C:\\Users\\Platon\\Documents\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\waterb.Graphs.csproj",
-        "packagesPath": "C:\\Users\\Platon\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Platon\\Documents\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\obj\\",
+        "projectPath": "E:\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\waterb.Graphs.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "E:\\GitHub\\Graphs\\Graphs\\waterb.Graphs\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Platon\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net7.0"
@@ -36,7 +36,7 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "all"
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -76,7 +76,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Users\\Platon\\.dotnet\\sdk\\9.0.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.202\\RuntimeIdentifierGraph.json"
         }
       }
     }
