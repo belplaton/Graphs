@@ -29,10 +29,11 @@ public class NumericGraphBuilder<TNode> : IGraphBuilder<GraphMatrix<int, TNode>,
 		return this;
 	}
 
-	public NumericGraphBuilder<TNode> ParsePayloadInput<TParser>(string[] input)
+	public NumericGraphBuilder<TNode> ParsePayloadInput<TParser>(string[] input, bool isWeighted)
 		where TParser : INumericGraphInputParser, new()
 	{
 		var parser = new TParser();
+		parser.Weighted = isWeighted;
 		parser.TryParse(this, input);
 		
 		return this;

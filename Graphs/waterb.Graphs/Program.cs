@@ -15,8 +15,8 @@ internal static class Program
 		var lines = File.ReadAllLines(filePath);
 		var builder = new NumericGraphBuilder<int>();
 		builder
-			.SetSettings(GraphSettings.IsDirected)
-			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines);
+			.SetSettings(GraphSettings.IsDirected | GraphSettings.IsWeighted)
+			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines, false);
 		
 		var graph = builder.CreateGraph();
 		
@@ -24,10 +24,12 @@ internal static class Program
 
 		HashSet<int>? visited = null;
 		Stack<GraphAlgorithms.DFSEnumerator<int, int>.DFSNode>? stack = null;
-		var comps = graph.FindStrongConnectedComponents(ref visited, ref stack);
-		for (var i = 0; comps != null && i < comps.Count; i++)
+		var result = graph.FindJointsAndBridges(ref visited, ref stack);
+		if (result != null)
 		{
-			Console.WriteLine(comps[i].ToString());
+			Console.WriteLine(result.Value.joints.ToString());
+			Console.WriteLine(result.Value.bridges.ToString());
+
 		}
 		
 		Console.WriteLine("any key to clos...");

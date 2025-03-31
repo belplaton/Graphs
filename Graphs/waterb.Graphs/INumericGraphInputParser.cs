@@ -10,6 +10,7 @@ public interface INumericGraphInputCollector
 
 public interface INumericGraphInputParser
 {
+	public bool Weighted { get; set; }
 	public bool IsValidWeight(double weight);
 	
 	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false);
@@ -26,7 +27,8 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 	//
 	// There are first line - count of vertexes. Vertexes numbered from 1 to N 
 	// Other any line is - 'from_num' 'to_num' 'weight'
-	
+
+	public bool Weighted { get; set; }
 	public bool IsValidWeight(double weight) => true;
 	
 	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
@@ -43,11 +45,11 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 				if (string.IsNullOrEmpty(line)) continue;
                     
 				var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-				if (parts.Length < 3) continue; 
+				if (Weighted && parts.Length < 3 || parts.Length < 2) continue; 
                     
 				var from = int.Parse(parts[0], CultureInfo.InvariantCulture);
 				var to = int.Parse(parts[1], CultureInfo.InvariantCulture);
-				double? weight = double.Parse(parts[2], CultureInfo.InvariantCulture);
+				double? weight = Weighted ? double.Parse(parts[2], CultureInfo.InvariantCulture) : 1;
                     
 				destination.Collect((from, to, weight));
 			}
@@ -74,6 +76,7 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 	// Number of line is number of vertex
 	// All lines is: 'to_number:weight'. So line#3 "4:3 9:6" is two edges: 3-4(weight=3), 3-9(weight=6)
 
+	public bool Weighted { get; set; }
 	public bool IsValidWeight(double weight) => true;
 	
 	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
@@ -124,6 +127,7 @@ public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
 	// There are first line - count of vertexes. Vertexes numbered from 1 to N 
 	// All other lines - is adjacency matrix where - 0 is no rib, 1 - is rib
 	
+	public bool Weighted { get; set; }
 	public bool IsValidWeight(double weight) => Math.Abs(weight) > double.Epsilon;
 	
 	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)

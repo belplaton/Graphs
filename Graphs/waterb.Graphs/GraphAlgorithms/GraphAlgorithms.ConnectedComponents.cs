@@ -163,7 +163,59 @@ public static partial class GraphAlgorithms
 		}
 	}
 
-	public static (List<TNode> joints, List<(TNode from, TNode to)> bridges)? FindJointsAndBridges<TNode, TData>(
+	public readonly struct GraphJoints<TNode>
+	{
+		public List<TNode> Joints { get; }
+
+		public GraphJoints()
+		{
+			Joints = new List<TNode>();	
+		}
+		public GraphJoints(List<TNode>? joints = null)
+		{
+			Joints = joints ?? new List<TNode>();
+		}
+
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+			for (var i = 0; i < Joints.Count; i++)
+			{
+				sb.Append($"{Joints[i]}");
+				if (i + 1 < Joints.Count) sb.Append(", ");
+			}
+
+			return sb.ToString();
+		}
+	}
+	
+	public readonly struct GraphBridges<TNode>
+	{
+		public List<(TNode fromNode, TNode toNode)> Bridges { get; }
+
+		public GraphBridges()
+		{
+			Bridges = new List<(TNode fromNode, TNode toNode)>();	
+		}
+		public GraphBridges(List<(TNode fromNode, TNode toNode)>? bridges = null)
+		{
+			Bridges = bridges ?? new List<(TNode fromNode, TNode toNode)>();
+		}
+
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+			for (var i = 0; i < Bridges.Count; i++)
+			{
+				sb.Append($"[{Bridges[i].fromNode} - {Bridges[i].toNode}]");
+				if (i + 1 < Bridges.Count) sb.Append(", ");
+			}
+
+			return sb.ToString();
+		}
+	}
+	
+	public static (GraphJoints<TNode> joints, GraphBridges<TNode> bridges)? FindJointsAndBridges<TNode, TData>(
 		this IGraph<TNode, TData> graph, ref HashSet<TNode>? visited,
 		ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack) where TNode : notnull
 	{
@@ -175,9 +227,10 @@ public static partial class GraphAlgorithms
 		var lastEnterTime = 0;
 		var nodesInfo = new (int lowTime, int discoverTime, int? parentIndex)[graph.Size];
 		var reversalStack = new Stack<(int currentIndex, int neigbourIndex)>();
+		var checkedJoints = new HashSet<TNode>();
 		
-		var joints = new List<TNode>();
-		var bridges = new List<(TNode from, TNode to)>();
+		var joints = new GraphJoints<TNode>();
+		var bridges = new GraphBridges<TNode>();
 		
 		for (var i = 0; i < graph.Size; i++)
 		{
@@ -185,7 +238,7 @@ public static partial class GraphAlgorithms
 			{
 				using var enumerator = new DFSEnumerator<TNode, TData>(graph, graph.Nodes[i], visited, stack, 
 					(current, g, s, v) => OnPrepareStackChanges(
-						current, g, s, v, ref lastEnterTime, nodesInfo, reversalStack, bridges, joints));
+						current, g, s, v, ref lastEnterTime, nodesInfo, reversalStack, joints));
 				while (enumerator.MoveNext()) { }
 				while (reversalStack.Count > 0)
 				{
@@ -197,7 +250,15 @@ public static partial class GraphAlgorithms
 
 					if (nodesInfo[pair.neigbourIndex].lowTime > nodesInfo[pair.currentIndex].discoverTime)
 					{
-						bridges.Add((graph.Nodes[pair.currentIndex], graph.Nodes[pair.neigbourIndex]));
+						bridges.Bridges.Add((graph.Nodes[pair.currentIndex], graph.Nodes[pair.neigbourIndex]));
+					}
+					
+					if (!checkedJoints.Contains(graph.Nodes[pair.currentIndex]) &&
+					    nodesInfo[pair.currentIndex].parentIndex != null &&
+					    nodesInfo[pair.neigbourIndex].lowTime >= nodesInfo[pair.currentIndex].discoverTime)
+					{
+						joints.Joints.Add(graph.Nodes[pair.currentIndex]);
+						checkedJoints.Add(graph.Nodes[pair.currentIndex]);
 					}
 				}
 			}
@@ -210,16 +271,17 @@ public static partial class GraphAlgorithms
             ref int lastEnterTime,
             (int lowTime, int discoverTime, int? parentIndex)[] nodesInfo,
             Stack<(int currentIndex, int neighbourIndex)> reversalStack,
-            List<(TNode from, TNode to)> bridges,
-            List<TNode> joints)
+            GraphJoints<TNode> joints)
         {
-            visited.Add(current.node);
             var currentNodeIndex = graph.GetIndex(current.node)!.Value;
-            nodesInfo[currentNodeIndex] = (lowTime: lastEnterTime, discoverTime: lastEnterTime, 
-	            nodesInfo[currentNodeIndex].parentIndex);
-            lastEnterTime++;
-            
-            var children = 0;
+            if (!visited.Contains(current.node))
+            {
+	            nodesInfo[currentNodeIndex] = (lowTime: lastEnterTime, discoverTime: lastEnterTime,
+		            nodesInfo[currentNodeIndex].parentIndex);
+	            lastEnterTime++;
+            }
+
+            var childrensCount = 0;
             for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
             {
 	            if (graph[current.node][adjIndex].HasValue)
@@ -236,22 +298,16 @@ public static partial class GraphAlgorithms
 		            else
 		            {
 			            nodesInfo[adjIndex] = (nodesInfo[adjIndex].lowTime, nodesInfo[adjIndex].discoverTime, currentNodeIndex);
-			            children++;
-			            
 			            stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(neighbor, current.depth + 1));
 			            reversalStack.Push((currentNodeIndex, adjIndex));
-
-			            if (nodesInfo[currentNodeIndex].parentIndex == null && children > 1)
-			            {
-				            joints.Add(current.node);
-			            }
-			            else if (nodesInfo[currentNodeIndex].parentIndex != null &&
-							nodesInfo[adjIndex].lowTime >= nodesInfo[currentNodeIndex].discoverTime)
-			            {
-				            joints.Add(current.node);
-			            }
+			            childrensCount++;
 		            }
 	            }
+            }
+            
+            if (nodesInfo[currentNodeIndex].parentIndex == null && childrensCount > 1)
+            {
+	            joints.Joints.Add(current.node);
             }
         }
 	}
