@@ -2,6 +2,41 @@ namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
 {
+	public static List<RibData<TNode>>? BuildSpanningTreeDFS<TNode, TData>(
+		this IGraph<TNode, TData> graph, ref HashSet<TNode>? visited, 
+		ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack, TNode startNode)
+		where TNode : notnull
+	{
+		if (graph.Size == 0) return null;
+		
+		(visited ??= new HashSet<TNode>()).Clear();
+		(stack ??= new Stack<DFSEnumerator<TNode, TData>.DFSNode>()).Clear();
+
+		var spanningTreeEdges = new List<RibData<TNode>>();
+		using var enumerator = new DFSEnumerator<TNode, TData>(graph, graph.Nodes[0], visited, stack, 
+			(current, g, s, v) => OnPrepareStackChanges(
+				current, g, s, v, spanningTreeEdges));
+		while (enumerator.MoveNext()) {}
+
+		return spanningTreeEdges;
+		
+		static void OnPrepareStackChanges(DFSEnumerator<TNode, TData>.DFSNode current,
+			IGraph<TNode, TData> graph, Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited,
+			List<RibData<TNode>> spanningTreeEdges)
+		{
+			var currentIndex = graph.GetIndex(current.node)!.Value;
+			for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
+			{
+				if (graph[adjIndex][currentIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
+				{
+					stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.depth + 1));
+					spanningTreeEdges.Add(new RibData<TNode>(
+						current.node, graph.Nodes[adjIndex], graph[currentIndex][adjIndex]!.Value));
+				}
+			}
+		}
+	}
+	
 	/// <summary>
 	/// Prim`s algorithm
 	/// </summary>

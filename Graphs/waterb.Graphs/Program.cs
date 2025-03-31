@@ -23,8 +23,8 @@ internal static class Program
 		//Console.WriteLine(graph.PrepareGraphInfo());
 
 		HashSet<int>? visited = null;
-		PriorityQueue<(int from, int to), double>? queue = null;
-		var result = graph.BuildMinimumSpanningTreePrim(ref visited, ref queue);
+		Stack<GraphAlgorithms.DFSEnumerator<int, int>.DFSNode>? stack = null;
+		var result = graph.BuildSpanningTreeDFS(ref visited, ref stack, graph.Nodes[0]);
 		for (var i = 0; result != null && i < result.Count; i++)
 		{
 			Console.Write($"{result[i]}, ");
