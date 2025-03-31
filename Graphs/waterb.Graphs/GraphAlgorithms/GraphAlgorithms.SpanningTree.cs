@@ -63,6 +63,64 @@ public static partial class GraphAlgorithms
 			}
 		}
 		
+		return spanningTreeEdges;
+	}
+	
+	/// <summary>
+	/// Boruvka's algorithm
+	/// </summary>
+	public static List<RibData<TNode>>? BuildMinimumSpanningTreeBoruvka<TNode, TData>(
+		this IGraph<TNode, TData> graph) where TNode : notnull
+	{
+		if (graph.Size == 0) return null;
+
+		var dsu = new DisjointSetUnion(graph.Size);
+		var spanningTreeEdges = new List<RibData<TNode>>();
+		var cheapestEdges = new IndexedRibData?[graph.Size];
+		var components = graph.Size;
+
+		while (components > 1)
+		{
+			Array.Fill(cheapestEdges, null);
+			Parallel.For(0, graph.Size, i =>
+			{
+				var nodeRoot = dsu.Find(i);
+				for (var j = 0; j < graph.Size; j++)
+				{
+					if (graph[i][j].HasValue && i != j)
+					{
+						var neighborRoot = dsu.Find(j);
+						if (nodeRoot == neighborRoot) continue;
+						
+						var currentEdgeWeight = graph[i][j]!.Value;
+						lock (cheapestEdges)
+						{
+							if (cheapestEdges[nodeRoot] == null ||
+							    cheapestEdges[nodeRoot]!.Value.weight > currentEdgeWeight)
+							{
+								cheapestEdges[nodeRoot] = new IndexedRibData(i, j, currentEdgeWeight);
+							}
+						}
+					}
+				}
+			});
+			
+			for (var i = 0; i < graph.Size; i++)
+			{
+				var cheapestEdge = cheapestEdges[i];
+				if (cheapestEdge.HasValue)
+				{
+					var fromRoot = dsu.Find(cheapestEdge.Value.fromNode);
+					var toRoot = dsu.Find(cheapestEdge.Value.toNode);
+
+					if (fromRoot != toRoot && dsu.Union(fromRoot, toRoot))
+					{
+						spanningTreeEdges.Add(cheapestEdge.Value.Convert(graph));
+						components--;
+					}
+				}
+			}
+		}
 		
 		return spanningTreeEdges;
 	}

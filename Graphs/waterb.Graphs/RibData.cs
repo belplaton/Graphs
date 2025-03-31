@@ -12,4 +12,9 @@ public readonly struct RibData<TNode>
 		this.toNode = toNode;
 		this.weight = weight;
 	}
+
+	public override string ToString()
+	{
+		return $"[{fromNode} - {toNode}]: {weight}";
+	}
 }

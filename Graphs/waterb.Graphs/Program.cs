@@ -16,20 +16,18 @@ internal static class Program
 		var builder = new NumericGraphBuilder<int>();
 		builder
 			.SetSettings(GraphSettings.IsDirected | GraphSettings.IsWeighted)
-			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines, false);
+			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines, true);
 		
 		var graph = builder.CreateGraph();
 		
-		Console.WriteLine(graph.PrepareGraphInfo());
+		//Console.WriteLine(graph.PrepareGraphInfo());
 
 		HashSet<int>? visited = null;
-		Stack<GraphAlgorithms.DFSEnumerator<int, int>.DFSNode>? stack = null;
-		var result = graph.FindJointsAndBridges(ref visited, ref stack);
-		if (result != null)
+		PriorityQueue<(int from, int to), double>? queue = null;
+		var result = graph.BuildMinimumSpanningTreeBoruvka();
+		for (var i = 0; result != null && i < result.Count; i++)
 		{
-			Console.WriteLine(result.Value.joints.ToString());
-			Console.WriteLine(result.Value.bridges.ToString());
-
+			Console.Write($"{result[i]}, ");
 		}
 		
 		Console.WriteLine("any key to clos...");

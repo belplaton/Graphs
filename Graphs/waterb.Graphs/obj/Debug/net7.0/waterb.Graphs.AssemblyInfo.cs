@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("waterb.Graphs")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+77014fddca33833dc31c50c0d6a3c169c19b7c37")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fa14a6ef0d1f46f05ee7e400b9e02a3ab3a13fd8")]
 [assembly: System.Reflection.AssemblyProductAttribute("waterb.Graphs")]
 [assembly: System.Reflection.AssemblyTitleAttribute("waterb.Graphs")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
