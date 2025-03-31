@@ -2,11 +2,11 @@ namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
 {
-    public static FloydWarshallData? FloydWarshall<TNode, TData>(this IGraph<TNode, TData> graph)
+    public static FloydWarshallData<TNode>? FloydWarshall<TNode, TData>(this IGraph<TNode, TData> graph)
     {
         if (graph.Size == 0) return null;
 
-        var data = new FloydWarshallData(graph.Size);
+        var data = new FloydWarshallData<TNode>(graph.Size);
         for (var k = 0; k < graph.Size; k++)
         {
             for (var i = 0; i < graph.Size; i++)
@@ -44,8 +44,8 @@ public static partial class GraphAlgorithms
         
         for (var i = 0; i < graph.Size; i++)
         {
-            if (Math.Abs(data.eccentricity[i] - data.diameter) <= double.Epsilon) data.peripheralIndexes.Add(i);
-            if (Math.Abs(data.eccentricity[i] - data.radius) <= double.Epsilon) data.centralIndexes.Add(i);
+            if (Math.Abs(data.eccentricity[i] - data.diameter) <= double.Epsilon) data.peripheralNodes.Add(graph.Nodes[i]);
+            if (Math.Abs(data.eccentricity[i] - data.radius) <= double.Epsilon) data.centralNodes.Add(graph.Nodes[i]);
         }
 
         return data;

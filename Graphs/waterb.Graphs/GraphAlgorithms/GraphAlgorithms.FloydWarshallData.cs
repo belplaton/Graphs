@@ -4,13 +4,13 @@ namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
 {
-	public class FloydWarshallData
+	public class FloydWarshallData<TNode>
 	{
 		public readonly double?[][] dist;
 		public readonly int[] degreesVector;
 		public readonly double[] eccentricity;
-		public readonly List<int> peripheralIndexes;
-		public readonly List<int> centralIndexes;
+		public readonly List<TNode> peripheralNodes;
+		public readonly List<TNode> centralNodes;
 		public double radius;
 		public double diameter;
         
@@ -24,8 +24,8 @@ public static partial class GraphAlgorithms
 
 			degreesVector = new int [size];
 			eccentricity = new double[size];
-			peripheralIndexes = new List<int>();
-			centralIndexes = new List<int>();
+			peripheralNodes = new List<TNode>();
+			centralNodes = new List<TNode>();
 		}
 
 		public override string ToString()
@@ -52,9 +52,9 @@ public static partial class GraphAlgorithms
 			sb.AppendLine($"R = {radius}");
 			sb.AppendLine("Central vertices:");
 			sb.Append('[');
-			for (var i = 0; i < centralIndexes.Count; i++)
+			for (var i = 0; i < centralNodes.Count; i++)
 			{
-				sb.Append(i + 1 < centralIndexes.Count ? $"{centralIndexes[i]}, " : $"{centralIndexes[i]}");
+				sb.Append(i + 1 < centralNodes.Count ? $"{centralNodes[i]}, " : $"{centralNodes[i]}");
 			}
 
 			sb.Append("]\n");
@@ -62,9 +62,9 @@ public static partial class GraphAlgorithms
 			sb.AppendLine($"D = {diameter}");
 			sb.AppendLine("Peripheral vertices");
 			sb.Append('[');
-			for (var i = 0; i < peripheralIndexes.Count; i++)
+			for (var i = 0; i < peripheralNodes.Count; i++)
 			{
-				sb.Append(i + 1 < peripheralIndexes.Count ? $"{peripheralIndexes[i]}, " : $"{peripheralIndexes[i]}");
+				sb.Append(i + 1 < peripheralNodes.Count ? $"{peripheralNodes[i]}, " : $"{peripheralNodes[i]}");
 			}
 
 			sb.Append("]\n");
