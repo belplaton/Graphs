@@ -10,10 +10,9 @@ public interface INumericGraphInputCollector
 
 public interface INumericGraphInputParser
 {
-	public bool Weighted { get; set; }
 	public bool IsValidWeight(double weight);
 	
-	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false);
+	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool isWeighted, bool clearDestination = false);
 }
 
 public class RibsListNumericGraphInputParser : INumericGraphInputParser
@@ -27,11 +26,10 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 	//
 	// There are first line - count of vertexes. Vertexes numbered from 1 to N 
 	// Other any line is - 'from_num' 'to_num' 'weight'
-
-	public bool Weighted { get; set; }
+	
 	public bool IsValidWeight(double weight) => true;
 	
-	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool isWeighted, bool clearDestination = false)
 	{
 		try
 		{
@@ -45,11 +43,11 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 				if (string.IsNullOrEmpty(line)) continue;
                     
 				var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-				if (Weighted && parts.Length < 3 || parts.Length < 2) continue; 
+				if (isWeighted && parts.Length < 3 || parts.Length < 2) continue; 
                     
 				var from = int.Parse(parts[0], CultureInfo.InvariantCulture);
 				var to = int.Parse(parts[1], CultureInfo.InvariantCulture);
-				double? weight = Weighted ? double.Parse(parts[2], CultureInfo.InvariantCulture) : 1;
+				double? weight = isWeighted ? double.Parse(parts[2], CultureInfo.InvariantCulture) : 1;
                     
 				destination.Collect((from, to, weight));
 			}
@@ -79,7 +77,7 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 	public bool Weighted { get; set; }
 	public bool IsValidWeight(double weight) => true;
 	
-	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool isWeighted, bool clearDestination = false)
 	{
 		try
 		{
@@ -130,7 +128,7 @@ public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
 	public bool Weighted { get; set; }
 	public bool IsValidWeight(double weight) => Math.Abs(weight) > double.Epsilon;
 	
-	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool isWeighted, bool clearDestination = false)
 	{
 		try
 		{

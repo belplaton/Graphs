@@ -33,8 +33,7 @@ public class NumericGraphBuilder<TNode> : IGraphBuilder<GraphMatrix<int, TNode>,
 		where TParser : INumericGraphInputParser, new()
 	{
 		var parser = new TParser();
-		parser.Weighted = isWeighted;
-		parser.TryParse(this, input);
+		parser.TryParse(this, input, (_settings & GraphSettings.IsWeighted) != 0);
 		
 		return this;
 	}

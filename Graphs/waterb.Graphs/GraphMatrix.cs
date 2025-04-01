@@ -4,7 +4,7 @@ using System.Text;
 namespace waterb.Graphs;
 
 #nullable disable
-public class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
+public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 {
 	public int Size
 	{

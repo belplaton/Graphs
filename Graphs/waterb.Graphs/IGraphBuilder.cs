@@ -1,6 +1,6 @@
 namespace waterb.Graphs;
 
-public interface IGraphBuilder<TGraph, TNode, TData>
+public interface IGraphBuilder<out TGraph, TNode, TData>
 	where TGraph : IGraph<TNode, TData>
 	where TNode : notnull
 {
