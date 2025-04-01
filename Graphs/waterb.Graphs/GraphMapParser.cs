@@ -2,9 +2,9 @@ using System.Globalization;
 
 namespace waterb.Graphs;
 
-public class GraphMapParser
+public static class GraphMapParser
 {
-	public bool TryCreateGraphMap(string[] input, out GraphMap? map)
+	public static bool TryCreateGraphMap(string[] input, out GraphMap? map)
 	{
 		map = null;
 		try
@@ -28,10 +28,11 @@ public class GraphMapParser
 				for (var x = 0; x < parts.Length; x++)
 				{
 					map[x, y] = double.Parse(parts[x], CultureInfo.InvariantCulture);
+					if (map[x, y] == 0) map[x, y] = null;
 				}
 			}
 			
-			return true;
+			return map != null;
 		}
 		catch
 		{

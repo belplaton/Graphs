@@ -6,7 +6,7 @@ using System;
 
 public sealed class GraphMap
 {
-    private readonly double[][] _mapMatrix;
+    private readonly double?[][] _mapMatrix;
     public int Height { get; }
     public int Width { get; }
 
@@ -14,25 +14,25 @@ public sealed class GraphMap
     {
         Height = height;
         Width = width;
-        _mapMatrix = new double[height][];
+        _mapMatrix = new double?[height][];
         for (var i = 0; i < height; i++)
         {
-            _mapMatrix[i] = new double[width];
+            _mapMatrix[i] = new double?[width];
         }
     }
 
-    public double this[int x, int y]
+    public double? this[int x, int y]
     {
         get => _mapMatrix[y][x];
         set => _mapMatrix[y][x] = value;
     }
     
-    public double GetDistance((int x, int y) from, (int x, int y) to)
+    public bool TryGetDistance((int x, int y) from, (int x, int y) to, out double distance)
     {
-        var dx = Math.Abs(from.x - to.x);
-        var dy = Math.Abs(from.y - to.y);
-        var dh = Math.Abs(_mapMatrix[from.y][from.x] - _mapMatrix[to.y][to.x]);
-        return dx + dy + dh;
+        distance = 0;
+        if (!this[from.x, from.y].HasValue || !this[to.x, to.y].HasValue) return false;
+        distance = Math.Abs(this[from.x, from.y]!.Value - this[to.x, to.y]!.Value);
+        return true;
     }
     
     public static double GetHeuristicsDistance((int x, int y) from, (int x, int y) to, DistanceMetric metric)
@@ -91,6 +91,48 @@ public sealed class GraphMap
             sb.AppendLine();
         }
         
+        return sb.ToString();
+    }
+    
+    public string PrepareMapInfoWithRoute(List<(int x, int y)> route)
+    {
+        var routeSet = new HashSet<(int x, int y)>();
+        for (var i = 0; i < route.Count; i++)
+        {
+            routeSet.Add(route[i]);
+        }
+        
+        var sb = new StringBuilder();
+        sb.AppendLine($"GraphMap: Height={Height}, Width={Width}");
+        sb.AppendLine();
+        sb.AppendLine("Map Matrix with Route:");
+        sb.Append("     ");
+        for (var x = 0; x < Width; x++)
+        {
+            sb.Append($"{x,8}");
+        }
+        sb.AppendLine();
+    
+        const string RedStart = "\u001b[31m";
+        const string ResetColor = "\u001b[0m";
+
+        for (var y = 0; y < Height; y++)
+        {
+            sb.Append($"{y,4}:");
+            for (var x = 0; x < Width; x++)
+            {
+                if (routeSet.Contains((x, y)))
+                {
+                    sb.Append($"{RedStart}{_mapMatrix[y][x],8}{ResetColor}");
+                }
+                else
+                {
+                    sb.Append(_mapMatrix[y][x].HasValue ? $"{_mapMatrix[y][x],8:0.##}" : $"{"-",8}");
+                }
+            }
+            sb.AppendLine();
+        }
+    
         return sb.ToString();
     }
 }

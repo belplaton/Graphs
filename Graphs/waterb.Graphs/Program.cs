@@ -1,6 +1,5 @@
-﻿using System.Text;
-using waterb.Graphs;
-using waterb.Graphs.GraphAlgorithms;
+﻿using waterb.Graphs;
+using waterb.Graphs.MapAlgorithms;
 
 internal static class Program
 {
@@ -14,33 +13,19 @@ internal static class Program
 		}
 		
 		var lines = File.ReadAllLines(filePath);
-		var builder = new NumericGraphBuilder<int>();
-		builder
-			.SetSettings(GraphSettings.IsDirected | GraphSettings.IsWeighted)
-			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines, true);
-		
-		var graph = builder.CreateGraph();
-		
-		//Console.WriteLine(graph.PrepareGraphInfo());
-
-		/*
-		HashSet<int>? visited = null;
-		Stack<GraphAlgorithms.DFSEnumerator<int, int>.DFSNode>? stack = null;
-		var result = graph.BuildSpanningTreeDFS(ref visited, ref stack, graph.Nodes[0]);
-		for (var i = 0; result != null && i < result.Count; i++)
+		if (GraphMapParser.TryCreateGraphMap(lines, out var map))
 		{
-			Console.Write($"{result[i]}, ");
-		}
-		*/
-		
-		var result = graph.ComputeComponentsFloydWarshallData();
-		if (result != null)
-		foreach (var floydWarshallData in result)
-		{
-			Console.Write(floydWarshallData.Key);
-			Console.Write(floydWarshallData.Value);
-			Console.WriteLine();
-			Console.WriteLine();
+			var metrics = Enum.GetValues<DistanceMetric>();
+			for (var i = 0; i < metrics.Length; i++)
+			{
+				var path = map!.FindPathAStar((13, 14), (6, 14), metrics[i]);
+				if (path != null)
+				{
+					Console.WriteLine($"Metrics: {metrics[i]}");
+					Console.Write(map?.PrepareMapInfoWithRoute(path));
+					Console.WriteLine();
+				}
+			}
 		}
 
 		Console.WriteLine("any key to clos...");
