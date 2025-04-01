@@ -15,16 +15,12 @@ internal static class Program
 		var lines = File.ReadAllLines(filePath);
 		if (GraphMapParser.TryCreateGraphMap(lines, out var map))
 		{
-			var metrics = Enum.GetValues<DistanceMetric>();
-			for (var i = 0; i < metrics.Length; i++)
+			var path = map!.FindPathAStar((0, 0), (14, 14), DistanceMetric.Manhattan);
+			if (path != null)
 			{
-				var path = map!.FindPathAStar((13, 14), (6, 14), metrics[i]);
-				if (path != null)
-				{
-					Console.WriteLine($"Metrics: {metrics[i]}");
-					Console.Write(map?.PrepareMapInfoWithRoute(path));
-					Console.WriteLine();
-				}
+				Console.WriteLine($"Metrics: {DistanceMetric.Manhattan}.");
+				Console.Write(map?.PrepareMapInfoWithRoute(path));
+				Console.WriteLine();
 			}
 		}
 

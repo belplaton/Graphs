@@ -6,14 +6,6 @@ public static partial class MapAlgorithms
 	{
 		var dist = new Dictionary<(int x, int y), double>();
 		var prev = new Dictionary<(int x, int y), (int x, int y)>();
-
-		for (var y = 0; y < graphMap.Height; y++)
-		{
-			for (var x = 0; x < graphMap.Width; x++)
-			{
-				dist[(x, y)] = double.PositiveInfinity;
-			}
-		}
 		
 		dist[from] = 0;
 		var openSet = new PriorityQueue<(int x, int y), double>();
@@ -26,7 +18,7 @@ public static partial class MapAlgorithms
 				var neighbour = neighbours[i];
 				if (graphMap.TryGetDistance(current, neighbour, out var distance))
 				{
-					var alt = dist.GetValueOrDefault(current, double.PositiveInfinity) + distance;
+					var alt = dist[current] + distance;
 					if (alt < dist.GetValueOrDefault(neighbour, double.PositiveInfinity))
 					{
 						dist[neighbour] = alt;
