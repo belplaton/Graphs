@@ -1,12 +1,12 @@
 using System.Text;
 using waterb.Graphs.GraphAlgorithms;
+using waterb.Graphs.MapAlgorithms;
 
 namespace waterb.Graphs;
 
 public static partial class GraphTester
 {
-    public static string PrepareResults<TNumericGraphInputParser, TData>(
-        string pathInput, string pathOutput, GraphTestType graphTestType)
+    public static string PrepareResults<TNumericGraphInputParser, TData>(string pathInput, GraphTestType mapTestType)
         where TNumericGraphInputParser : INumericGraphInputParser, new()
     {
         if (!File.Exists(pathInput))
@@ -22,7 +22,7 @@ public static partial class GraphTester
         var sb = new StringBuilder();
 
         sb.AppendLine($"GraphMatrix: Size={graph.Size}, Settings={graph.Settings}\n");
-        switch (graphTestType)
+        switch (mapTestType)
         {
             case GraphTestType.ConnectedComponents:
                 if ((graph.Settings & GraphSettings.IsDirected) != 0)
@@ -100,8 +100,101 @@ public static partial class GraphTester
                 if (r6) sb.AppendLine($"[{string.Join(", ", r5PartB!)}]");
                 
                 break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(mapTestType), mapTestType, null);
         }
 
         return sb.ToString();
+    }
+    
+    public static string PrepareResults(string pathInput, MapTestType mapTestType)
+    {
+        if (!File.Exists(pathInput))
+        {
+            Console.WriteLine($"file'{pathInput}' is not found!");
+            return "No results.";
+        }
+		
+        var lines = File.ReadAllLines(pathInput);
+        if (GraphMapParser.TryCreateGraphMap(lines, out var map))
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"GraphMap: Height={map!.Height}, Width={map.Width}\n");
+            switch (mapTestType)
+            {
+                case MapTestType.FindPath:
+                    Console.WriteLine("Path From (x, y) without braces: ");
+                    if (!TryParseCoordinates(Console.ReadLine(), out var from1))
+                    {
+                        Console.WriteLine("Error with parsing coordinates");
+                        return "No results.";
+                    }
+                    
+                    Console.WriteLine("Path To (x, y) without braces: ");
+                    if (!TryParseCoordinates(Console.ReadLine(), out var to1))
+                    {
+                        Console.WriteLine("Error with parsing coordinates");
+                        return "No results.";
+                    }
+                    
+                    var r1 = map.FindPathDijkstra(from1, to1);
+                    if (r1 != null)
+                    {
+                        sb.AppendLine(map.PrepareMapInfoWithRoute(r1));
+                    }
+                
+                    break;
+                case MapTestType.FindPathAStar:
+                    Console.WriteLine("Path From (x, y) without braces: ");
+                    if (!TryParseCoordinates(Console.ReadLine(), out var from2))
+                    {
+                        Console.WriteLine("Error with parsing coordinates");
+                        return "No results.";
+                    }
+                    
+                    Console.WriteLine("Path To (x, y) without braces: ");
+                    if (!TryParseCoordinates(Console.ReadLine(), out var to2))
+                    {
+                        Console.WriteLine("Error with parsing coordinates");
+                        return "No results.";
+                    }
+                    
+                    Console.WriteLine($"Enter distance metric [Metrics: {
+                        string.Join(", ", Enum.GetNames<DistanceMetric>())}]: ");
+                    var metricStr = Console.ReadLine();
+                    if (!Enum.TryParse<DistanceMetric>(metricStr, out var metric))
+                    {
+                        Console.WriteLine("Error with parsing distance metric");
+                        return "No results.";
+                    }
+                
+                    var r2 = map.FindPathAStar(from2, to2, metric);
+                    if (r2 != null)
+                    {
+                        sb.AppendLine($"Metrics: {metric}.");
+                        sb.AppendLine(map.PrepareMapInfoWithRoute(r2));
+                    }
+                    
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(mapTestType), mapTestType, null);
+            }
+            
+            return sb.ToString();
+        }
+
+        return "No results.";
+    }
+
+    private static bool TryParseCoordinates(string? input, out (int x, int y) result)
+    {
+        result = default;
+        if (input == null) return false;
+        var pair = input.Split(", ");
+        if (pair.Length < 2) return false;
+        if (!int.TryParse(pair[0], out var first)) return false;
+        if (!int.TryParse(pair[1], out var second)) return false;
+        result = (first, second);
+        return true;
     }
 }
