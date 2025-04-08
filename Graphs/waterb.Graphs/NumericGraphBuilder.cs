@@ -4,15 +4,8 @@ namespace waterb.Graphs;
 
 public class NumericGraphBuilder<TNode> : IGraphBuilder<GraphMatrix<int, TNode>, int, TNode>, INumericGraphInputCollector
 {
-	private GraphSettings _settings;
 	private int _maxVertex;
 	private readonly List<(int from, int to, double? weight)> _ribsPayloadData = new();
-
-	public NumericGraphBuilder<TNode> SetSettings(GraphSettings settings)
-	{
-		_settings = settings;
-		return this;
-	}
 	
 	public NumericGraphBuilder<TNode> AddRib(int from, int to, double? weight)
 	{
@@ -23,7 +16,6 @@ public class NumericGraphBuilder<TNode> : IGraphBuilder<GraphMatrix<int, TNode>,
 	
 	public NumericGraphBuilder<TNode> Clear()
 	{
-		_settings = GraphSettings.None;
 		_ribsPayloadData.Clear();
 		_maxVertex = 0;
 		return this;

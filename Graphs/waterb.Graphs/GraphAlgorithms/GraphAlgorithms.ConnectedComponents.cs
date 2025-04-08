@@ -59,6 +59,7 @@ public static partial class GraphAlgorithms
         }
     }
 	
+	// non-oriented graph only
 	public static List<ConnectedComponent<TNode>>? FindConnectedComponents<TNode, TData>(this IGraph<TNode, TData> graph,
 		ref HashSet<TNode>? visited, ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)
 	{
@@ -83,6 +84,7 @@ public static partial class GraphAlgorithms
 		return components;
 	}
 	
+	// oriented graph only
 	public static List<ConnectedComponent<TNode>>? FindWeakConnectedComponents<TNode, TData>(this IGraph<TNode, TData> graph,
 		ref HashSet<TNode>? visited, ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)
 	{

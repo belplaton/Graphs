@@ -116,6 +116,8 @@ public sealed class GraphMap
         const string RedStart = "\u001b[31m";
         const string ResetColor = "\u001b[0m";
 
+        double count = 0;
+        double prev = 0;
         for (var y = 0; y < Height; y++)
         {
             sb.Append($"{y,4}:");
@@ -124,6 +126,8 @@ public sealed class GraphMap
                 if (routeSet.Contains((x, y)))
                 {
                     sb.Append($"{RedStart}{_mapMatrix[y][x],8}{ResetColor}");
+                    count += Math.Abs(_mapMatrix[y][x]!.Value - prev);
+                    prev = _mapMatrix[y][x]!.Value;
                 }
                 else
                 {
@@ -133,6 +137,9 @@ public sealed class GraphMap
             sb.AppendLine();
         }
     
+        
+        sb.AppendLine();
+        sb.AppendLine($"GraphMap: Length={count}");
         return sb.ToString();
     }
 }
