@@ -42,7 +42,7 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
                     
 				var from = int.Parse(parts[0], CultureInfo.InvariantCulture);
 				var to = int.Parse(parts[1], CultureInfo.InvariantCulture);
-				double? weight = parts.Length >= 3 ? double.Parse(parts[2], CultureInfo.InvariantCulture) : 1;
+				double? weight = parts.Length >= 3 ? double.Parse(parts[2], CultureInfo.InvariantCulture) : null;
                     
 				destination.Collect((from, to, weight));
 			}
@@ -142,10 +142,10 @@ public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
                     
 				for (var j = 0; j < vertexCount; j++)
 				{
-					var value = double.Parse(tokens[j], CultureInfo.InvariantCulture);
-					if (value != 0)
+					var weight = double.Parse(tokens[j], CultureInfo.InvariantCulture);
+					if (weight != 0)
 					{
-						destination.Collect((i, j + 1, value));
+						destination.Collect((i, j + 1, Math.Abs(weight - 1) > double.Epsilon ? weight : null));
 					}
 				}
 			}
