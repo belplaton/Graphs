@@ -96,28 +96,34 @@ public sealed class GraphMap
     
     public string PrepareMapInfoWithRoute(List<(int x, int y)> route)
     {
-        var routeSet = new HashSet<(int x, int y)>();
-        for (var i = 0; i < route.Count; i++)
-        {
-            routeSet.Add(route[i]);
-        }
-        
         var sb = new StringBuilder();
         sb.AppendLine($"GraphMap: Height={Height}, Width={Width}");
         sb.AppendLine();
         sb.AppendLine("Map Matrix with Route:");
         sb.Append("     ");
+
+        sb.AppendLine("Route List: [");
+        var routeSet = new HashSet<(int x, int y)>();
+        for (var i = 0; i < route.Count; i++)
+        {
+            routeSet.Add(route[i]);
+            sb.Append($"({route[i].x}, {route[i].y})");
+        }
+
+        sb.Append("]\n");
+    
+        const string RedStart = "\e[31m";
+        const string ResetColor = "\e[0m";
+
+        double count = 0;
+        double prev = 0;
+        
         for (var x = 0; x < Width; x++)
         {
             sb.Append($"{x,8}");
         }
         sb.AppendLine();
-    
-        const string RedStart = "\u001b[31m";
-        const string ResetColor = "\u001b[0m";
-
-        double count = 0;
-        double prev = 0;
+        
         for (var y = 0; y < Height; y++)
         {
             sb.Append($"{y,4}:");

@@ -173,6 +173,7 @@ public static partial class GraphTester
                     {
                         sb.AppendLine($"Metrics: {metric}.");
                         sb.AppendLine(map.PrepareMapInfoWithRoute(r2));
+                        
                     }
                     
                     break;

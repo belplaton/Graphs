@@ -85,19 +85,7 @@ internal static class Program
 						File.WriteAllText(outputPath, result2);
 						Console.WriteLine($"Result written to {outputPath}");
 					}
-					
-					var lines = File.ReadAllLines(inputPath);
-					if (GraphMapParser.TryCreateGraphMap(lines, out var map))
-					{
-						var path = map!.FindPathAStar((0, 0), (14, 14), DistanceMetric.Manhattan);
-						if (path != null)
-						{
-							Console.WriteLine($"Metrics: {DistanceMetric.Manhattan}.");
-							Console.Write(map?.PrepareMapInfoWithRoute(path));
-							Console.WriteLine();
-						}
-					}
-					
+
 					break;
 				default:
 					Console.WriteLine($"Unknown structure type: {args[0]}");
