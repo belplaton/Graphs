@@ -140,7 +140,7 @@ public static partial class GraphTester
                     var r1 = map.FindPathDijkstra(from1, to1);
                     if (r1 != null)
                     {
-                        sb.AppendLine(map.PrepareMapInfoWithRoute(r1));
+                        sb.AppendLine(map.PrepareMapInfoRoute(r1, true));
                     }
                 
                     break;
@@ -172,7 +172,7 @@ public static partial class GraphTester
                     if (r2 != null)
                     {
                         sb.AppendLine($"Metrics: {metric}.");
-                        sb.AppendLine(map.PrepareMapInfoWithRoute(r2));
+                        sb.AppendLine(map.PrepareMapInfoRoute(r2, true));
                         
                     }
                     

@@ -6,20 +6,22 @@ internal static class Program
 	{
 		if (args.Length > 0 && args[0] == "--help")
 		{
-			Console.WriteLine($"Structures Available For Test: Graph, Map");
+			Console.WriteLine($"Structures Available For Test: Graph, Map\n");
 
 			Console.WriteLine($"Graph Test Types: {
-				string.Join(", ", Enum.GetValues<GraphTester.GraphTestType>())}");
+				string.Join(", ", Enum.GetValues<GraphTester.GraphTestType>())}\n");
 
 			Console.WriteLine($"Map Test Types: {
-				string.Join(", ", Enum.GetValues<GraphTester.MapTestType>())}");
+				string.Join(", ", Enum.GetValues<GraphTester.MapTestType>())}\n");
 		}
 
 		if (args.Length < 3)
 		{
-			Console.WriteLine("Usage: dotnet run <StructureType> <TestType> <InputPath> <OutputPath>(optional)");
-			Console.WriteLine("Example: dotnet run Graph ConnectedComponents input.txt output.txt");
-			Console.WriteLine("--help for more info");
+			Console.WriteLine("Usage: <StructureType> <TestType> <InputPath> <OutputPath>(optional)\n");
+			
+			Console.WriteLine("Example: Graph ConnectedComponents input.txt output.txt\n");
+			
+			Console.WriteLine("--help for more info\n");
 			return;
 		}
 

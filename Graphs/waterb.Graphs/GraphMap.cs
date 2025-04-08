@@ -94,20 +94,18 @@ public sealed class GraphMap
         return sb.ToString();
     }
     
-    public string PrepareMapInfoWithRoute(List<(int x, int y)> route)
+    public string PrepareMapInfoRoute(List<(int x, int y)> route, bool printRouteOnMap)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"GraphMap: Height={Height}, Width={Width}");
-        sb.AppendLine();
-        sb.AppendLine("Map Matrix with Route:");
-        sb.Append("     ");
-
+        sb.AppendLine($"GraphMap: Height={Height}, Width={Width}\n");
+        sb.AppendLine("Map Matrix with Route:\n");
+        
         sb.AppendLine("Route List: [");
         var routeSet = new HashSet<(int x, int y)>();
         for (var i = 0; i < route.Count; i++)
         {
             routeSet.Add(route[i]);
-            sb.Append($"({route[i].x}, {route[i].y})");
+            sb.Append($"({route[i].x}, {route[i].y}), ");
         }
 
         sb.Append("]\n");
@@ -117,30 +115,36 @@ public sealed class GraphMap
 
         double count = 0;
         double prev = 0;
-        
-        for (var x = 0; x < Width; x++)
+
+        if (printRouteOnMap)
         {
-            sb.Append($"{x,8}");
+            sb.AppendLine();
+            for (var x = 0; x < Width; x++)
+            {
+                sb.Append($"{x,8}");
+            }
+
+            sb.AppendLine();
         }
-        sb.AppendLine();
-        
+
         for (var y = 0; y < Height; y++)
         {
-            sb.Append($"{y,4}:");
+            if (printRouteOnMap) sb.Append($"{y,4}:");
             for (var x = 0; x < Width; x++)
             {
                 if (routeSet.Contains((x, y)))
                 {
-                    sb.Append($"{RedStart}{_mapMatrix[y][x],8}{ResetColor}");
+                    if (printRouteOnMap) sb.Append($"{RedStart}{_mapMatrix[y][x],8}{ResetColor}");
                     count += Math.Abs(_mapMatrix[y][x]!.Value - prev);
                     prev = _mapMatrix[y][x]!.Value;
                 }
-                else
+                else if (printRouteOnMap)
                 {
                     sb.Append(_mapMatrix[y][x].HasValue ? $"{_mapMatrix[y][x],8:0.##}" : $"{"-",8}");
                 }
             }
-            sb.AppendLine();
+            
+            if (printRouteOnMap) sb.AppendLine();
         }
     
         
