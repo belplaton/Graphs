@@ -143,6 +143,17 @@ public static partial class GraphAlgorithms
 	/// <summary>
 	/// Algorithm Kosayraju
 	/// </summary>
+	public static List<ConnectedComponent<TNode>>? FindStrongConnectedComponents<TNode, TData>(
+		this IGraph<TNode, TData> graph)
+	{
+		HashSet<TNode>? visited = null;
+		Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack = null;
+		return FindStrongConnectedComponents(graph, ref visited, ref stack);
+	}
+
+	/// <summary>
+	/// Algorithm Kosayraju
+	/// </summary>
 	public static List<ConnectedComponent<TNode>>? FindStrongConnectedComponents<TNode, TData>(this IGraph<TNode, TData> graph,
 		ref HashSet<TNode>? visited, ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)
 	{

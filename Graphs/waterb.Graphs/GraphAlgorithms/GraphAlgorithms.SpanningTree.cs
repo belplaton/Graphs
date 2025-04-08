@@ -45,7 +45,18 @@ public static partial class GraphAlgorithms
 			}
 		}
 	}
-	
+
+	/// <summary>
+	/// Prim`s algorithm
+	/// </summary>
+	public static List<RibData<TNode>>? BuildMinimumSpanningTreePrim<TNode, TData>(
+		this IGraph<TNode, TData> graph) where TNode : notnull
+	{
+		HashSet<TNode>? visited = [];
+		PriorityQueue<(TNode from, TNode to), double>? priorityQueue = new();
+		return graph.BuildMinimumSpanningTreePrim(ref visited, ref priorityQueue);
+	}
+
 	/// <summary>
 	/// Prim`s algorithm
 	/// </summary>

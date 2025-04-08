@@ -6,8 +6,11 @@ public static partial class GraphTester
     {
         ConnectedComponents,
         BridgesAndJoints,
-        SpanningTree,
+        DFSSpanningTree,
+        MinSpanningTree,
         FloydWarshall,
+        ComponentsFloydWarshall,
         FindGraphBipartite,
+        
     }
 }
