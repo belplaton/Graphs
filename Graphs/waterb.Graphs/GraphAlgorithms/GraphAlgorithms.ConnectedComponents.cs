@@ -28,7 +28,7 @@ public static partial class GraphAlgorithms
 				sb.Append($"{Nodes[i]}");
 				if (i + 1 < Nodes.Count) sb.Append(", ");
 			}
-			sb.Append("]\n");
+			sb.Append("]");
 
 			return sb.ToString();
 		}
@@ -60,6 +60,14 @@ public static partial class GraphAlgorithms
     }
 	
 	// non-oriented graph only
+	public static List<ConnectedComponent<TNode>>? FindConnectedComponents<TNode, TData>(this IGraph<TNode, TData> graph)
+	{
+		HashSet<TNode>? visited = null;
+		Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack = null;
+		return FindConnectedComponents(graph, ref visited, ref stack);
+	}
+
+	// non-oriented graph only
 	public static List<ConnectedComponent<TNode>>? FindConnectedComponents<TNode, TData>(this IGraph<TNode, TData> graph,
 		ref HashSet<TNode>? visited, ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)
 	{
@@ -82,6 +90,16 @@ public static partial class GraphAlgorithms
 		}
 
 		return components;
+	}
+	
+	
+	// oriented graph only
+	public static List<ConnectedComponent<TNode>>? FindWeakConnectedComponents<TNode, TData>(
+		this IGraph<TNode, TData> graph)
+	{
+		HashSet<TNode>? visited = null;
+		Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack = null;
+		return FindWeakConnectedComponents(graph, ref visited, ref stack);
 	}
 	
 	// oriented graph only
@@ -209,11 +227,13 @@ public static partial class GraphAlgorithms
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
+			sb.Append("[");
 			for (var i = 0; i < Joints.Count; i++)
 			{
 				sb.Append($"{Joints[i]}");
 				if (i + 1 < Joints.Count) sb.Append(", ");
 			}
+			sb.Append("]");
 
 			return sb.ToString();
 		}
@@ -235,14 +255,24 @@ public static partial class GraphAlgorithms
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
+			sb.Append("[");
 			for (var i = 0; i < Bridges.Count; i++)
 			{
 				sb.Append($"[{Bridges[i].fromNode} - {Bridges[i].toNode}]");
 				if (i + 1 < Bridges.Count) sb.Append(", ");
 			}
+			sb.Append("]");
 
 			return sb.ToString();
 		}
+	}
+
+	public static (GraphJoints<TNode> joints, GraphBridges<TNode> bridges)? FindJointsAndBridges<TNode, TData>(
+		this IGraph<TNode, TData> graph) where TNode : notnull
+	{
+		HashSet<TNode>? visited = [];
+		Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack = [];
+		return graph.FindJointsAndBridges(ref visited, ref stack);
 	}
 	
 	public static (GraphJoints<TNode> joints, GraphBridges<TNode> bridges)? FindJointsAndBridges<TNode, TData>(

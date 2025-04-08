@@ -26,8 +26,8 @@ namespace waterb.Graphs
 		public bool? GetEdge(TNode from, TNode to);
 		public double? GetWeight(TNode from, TNode to);
 
-		public bool TrySetEdgeData(TNode from, TNode to, double? weight);
-		public void SetEdgeData(TNode from, TNode to, double? weight);
+		public bool TrySetEdge(TNode from, TNode to, double? weight);
+		public void SetEdge(TNode from, TNode to, double? weight);
 		
 		public bool TryClearEdge(TNode from, TNode to);
 		public void ClearEdge(TNode from, TNode to);

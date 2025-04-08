@@ -3,8 +3,17 @@ namespace waterb.Graphs.GraphAlgorithms;
 public static partial class GraphAlgorithms
 {
 	public static List<RibData<TNode>>? BuildSpanningTreeDFS<TNode, TData>(
+		this IGraph<TNode, TData> graph)
+		where TNode : notnull
+	{
+		HashSet<TNode>? visited = [];
+		Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack = [];
+		return graph.BuildSpanningTreeDFS(ref visited, ref stack);
+	}
+	
+	public static List<RibData<TNode>>? BuildSpanningTreeDFS<TNode, TData>(
 		this IGraph<TNode, TData> graph, ref HashSet<TNode>? visited, 
-		ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack, TNode startNode)
+		ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)
 		where TNode : notnull
 	{
 		if (graph.Size == 0) return null;

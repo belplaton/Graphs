@@ -2,30 +2,54 @@ namespace waterb.Graphs;
 
 #nullable disable
 
-public class NumericGraphBuilder<TNode> : IGraphBuilder<GraphMatrix<int, TNode>, int, TNode>, INumericGraphInputCollector
+public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>, int, TData>, INumericGraphInputCollector
 {
+	private readonly HashSet<(int from, int to, double? weight)> _ribs = [];
+	private readonly HashSet<(int from, int to, double? weight)> _missingReverseRibs = [];
+	private GraphSettings _desiredSettings;
 	private int _maxVertex;
-	private readonly List<(int from, int to, double? weight)> _ribsPayloadData = new();
-	
-	public NumericGraphBuilder<TNode> AddRib(int from, int to, double? weight)
+	private bool _isAnyWeighted;
+
+	private GraphSettings _settings => _desiredSettings |
+		(_isAnyWeighted ? GraphSettings.IsWeighted : GraphSettings.None) |
+		(_missingReverseRibs.Count != 0 ? GraphSettings.IsDirected : GraphSettings.None);
+
+	public NumericGraphBuilder<TData> SetDesiredSettings(GraphSettings settings)
 	{
-		_ribsPayloadData.Add((from, to, weight));
+		_desiredSettings = settings;
+		return this;
+	}
+	
+	public NumericGraphBuilder<TData> AddRib(int from, int to, double? weight)
+	{
+		if (weight != null) _isAnyWeighted = true;
+
+		var data = (from, to, weight);
+		var reverseData = (to, from, weight);
+		if (!_ribs.Contains(reverseData)) _missingReverseRibs.Add(reverseData);
+		
+		_missingReverseRibs.Remove(data);
+		_ribs.Add((from, to, weight));
+		
 		_maxVertex = Math.Max(_maxVertex, Math.Max(to, from));
 		return this;
 	}
 	
-	public NumericGraphBuilder<TNode> Clear()
+	public NumericGraphBuilder<TData> Clear()
 	{
-		_ribsPayloadData.Clear();
+		_ribs.Clear();
+		_missingReverseRibs.Clear();
+		_desiredSettings = GraphSettings.None;
 		_maxVertex = 0;
+		_isAnyWeighted = false;
 		return this;
 	}
 
-	public NumericGraphBuilder<TNode> ParsePayloadInput<TParser>(string[] input, bool isWeighted)
+	public NumericGraphBuilder<TData> ParsePayloadInput<TParser>(string[] input)
 		where TParser : INumericGraphInputParser, new()
 	{
 		var parser = new TParser();
-		parser.TryParse(this, input, (_settings & GraphSettings.IsWeighted) != 0);
+		parser.TryParse(this, input);
 		
 		return this;
 	}
@@ -37,21 +61,20 @@ public class NumericGraphBuilder<TNode> : IGraphBuilder<GraphMatrix<int, TNode>,
 
 	public void ClearInput() => Clear();
 	
-	public GraphMatrix<int, TNode> CreateGraph()
+	public GraphMatrix<int, TData> CreateGraph()
 	{
-		var graph = new GraphMatrix<int, TNode>(_settings);
+		var graph = new GraphMatrix<int, TData>(_settings);
 
 		for (var i = graph.Size; i < _maxVertex; i++)
 		{
 			graph.AddNode(i + 1, default);
 		}
-		
-		for (var i = 0; _ribsPayloadData != null && i < _ribsPayloadData.Count; i++)
+
+		foreach (var rib in _ribs)
 		{
-			graph.SetData(_ribsPayloadData[i].from, default);
-			graph.SetData(_ribsPayloadData[i].to, default);
-			graph.SetEdgeData(_ribsPayloadData[i].from, _ribsPayloadData[i].to,
-				(_settings & GraphSettings.IsWeighted) != 0 ? _ribsPayloadData[i].weight : null);
+			graph.SetData(rib.from, default);
+			graph.SetData(rib.to, default);
+			graph.SetEdge(rib.from, rib.to, rib.weight);
 		}
 
 		return graph;

@@ -14,24 +14,6 @@ internal static class Program
 			Console.WriteLine($"file'{path}' is not found!");
 			return;
 		}
-		
-		var lines = File.ReadAllLines(path);
-		var builder = new NumericGraphBuilder<int>();
-		builder
-			.SetSettings(GraphSettings.IsDirected | GraphSettings.IsWeighted)
-			.ParsePayloadInput<RibsListNumericGraphInputParser>(lines, true);
-
-		if (GraphMapParser.TryCreateGraphMap(lines, out var map))
-		{
-			var apath = map!.FindPathAStar((6, 14), (13, 14), DistanceMetric.Manhattan);
-			if (apath != null)
-			{
-				Console.WriteLine($"Metrics: {DistanceMetric.Manhattan}.");
-				Console.Write(map?.PrepareMapInfoWithRoute(apath));
-				Console.WriteLine();
-			}
-		}
-
 
 		Console.WriteLine("any key to clos...");
 		Console.ReadKey();

@@ -2,7 +2,15 @@ namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
 {
-	public static bool TryGetBipartitePartition<TNode, TData>(this IGraph<TNode, TData> graph,
+    public static bool TryGetBipartitePartition<TNode, TData>(this IGraph<TNode, TData> graph,
+        out List<TNode>? partA, out List<TNode>? partB) where TNode : notnull
+    {
+        HashSet<TNode>? visited = [];
+        Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack = [];
+        return graph.TryGetBipartitePartition(ref visited, ref stack, out partA, out partB);
+    }
+
+    public static bool TryGetBipartitePartition<TNode, TData>(this IGraph<TNode, TData> graph,
         ref HashSet<TNode>? visited, ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack,
         out List<TNode>? partA, out List<TNode>? partB) where TNode : notnull
     {

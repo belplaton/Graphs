@@ -281,7 +281,7 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			return _adjacencyMatrix[fromIndex][toIndex];
 		}
 	}
-	public bool TrySetEdgeData(TNode from, TNode to, double? weight)
+	public bool TrySetEdge(TNode from, TNode to, double? weight = 1)
 	{
 		lock (_operationsLock)
 		{
@@ -295,7 +295,7 @@ public sealed class GraphMatrix<TNode, TData> : IGraph<TNode, TData>
 			return true;
 		}
 	}
-	public void SetEdgeData(TNode from, TNode to, double? weight)
+	public void SetEdge(TNode from, TNode to, double? weight = 1)
 	{
 		lock (_operationsLock)
 		{
