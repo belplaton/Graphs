@@ -1,20 +1,13 @@
 namespace waterb.Graphs;
 
-public readonly struct RibData<TNode>
+public readonly struct RibData<TNode>(TNode fromNode, TNode toNode, double weight)
 {
-	public readonly TNode fromNode;
-	public readonly TNode toNode;
-	public readonly double weight;
-
-	public RibData(TNode fromNode, TNode toNode, double weight)
-	{
-		this.fromNode = fromNode;
-		this.toNode = toNode;
-		this.weight = weight;
-	}
+	public readonly TNode fromNode = fromNode;
+	public readonly TNode toNode = toNode;
+	public readonly double weight = weight;
 
 	public override string ToString()
 	{
-		return $"[{fromNode} - {toNode}]: {weight}";
+		return $"({fromNode}, {toNode}): {weight}";
 	}
 }

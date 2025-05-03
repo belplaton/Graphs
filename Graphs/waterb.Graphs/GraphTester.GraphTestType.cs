@@ -11,6 +11,7 @@ public static partial class GraphTester
         FloydWarshall,
         ComponentsFloydWarshall,
         FindGraphBipartite,
+        FindGraphMaxBipartiteMatching
         
     }
 }

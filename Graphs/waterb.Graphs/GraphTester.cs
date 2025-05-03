@@ -112,6 +112,20 @@ public static partial class GraphTester
                 if (r6) sb.AppendLine($"[{string.Join(", ", r5PartB!)}]");
                 
                 break;
+            case GraphTestType.FindGraphMaxBipartiteMatching:
+                var r7 = graph.FindMaxBipartiteMatching();
+                if (r7 != null)
+                {
+                    sb.AppendLine($"Maximum matching number: {r7.Count}");
+                    sb.AppendLine("Matching maximum size:");
+                    sb.AppendLine($"[{string.Join(", ", r7)}]");
+                }
+                else
+                {
+                    sb.AppendLine("Graph is not bipartite");
+                }
+                
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mapTestType), mapTestType, null);
         }
