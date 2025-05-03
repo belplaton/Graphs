@@ -89,19 +89,15 @@ public static partial class GraphAlgorithms
 
         var matching = new Dictionary<TNode, TNode>();
         var visited = new HashSet<TNode>();
-        var stack = new Stack<DFSEnumerator<TNode, TData>.DFSNode>();
-        var backStack = new Stack<(TNode from, TNode to)>();
         for (var i = 0; i < lessPart.Count; i++)
         {
-            stack.Clear();
-            backStack.Clear();
             visited.Clear();
-            FindAugmentingPath(graph, lessPart[i], visited, stack, backStack, matching);
+            TryFindAugmentingPath(graph, lessPart[i], visited, matching);
         }
 
-        for (var i = 0; i < lessPart.Count; i++)
+        for (var i = 0; i < graph.Size; i++)
         {
-            var node = lessPart[i];
+            var node = graph.Nodes[i];
             if (matching.TryGetValue(node, out var matchedNode))
             {
                 result.Add(new RibData<TNode>(node, matchedNode, graph.GetWeight(node, matchedNode)!.Value));
@@ -111,37 +107,24 @@ public static partial class GraphAlgorithms
         return result.Count > 0 ? result : null;
     }
     
-    private static bool TryFindAugmentingPath<TNode, TData>(IGraph<TNode, TData> graph, TNode startNode, 
-        HashSet<TNode> visited, Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, 
-        Stack<(TNode from, TNode to)> backStack, Dictionary<TNode, TNode> matching)
-        where TNode : notnull
+    private static bool TryFindAugmentingPath<TNode, TData>(IGraph<TNode, TData> graph, 
+        TNode startNode, HashSet<TNode> visited, Dictionary<TNode, TNode> matching) where TNode : notnull
     {
-        using var enumerator = new DFSEnumerator<TNode, TData>(graph, startNode, visited, stack, 
-            (current, g, s, v) => OnPrepareStackChanges(current, g, s, v, backStack, matching));
-
-        while (enumerator.MoveNext()) { }
-        while (backStack.TryPop(out var pair)) matching[pair.from] = pair.to;
-        
-        return;
-        static void OnPrepareStackChanges(DFSEnumerator<TNode, TData>.DFSNode current,
-            IGraph<TNode, TData> graph, Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited,
-            Stack<(TNode from, TNode to)> backQueue, Dictionary<TNode, TNode> matching)
+        if (!visited.Add(startNode)) return false;
+        for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
         {
-            for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
+            var adjNode = graph.Nodes[adjIndex];
+            if (graph[startNode][adjIndex].HasValue)
             {
-                if (graph[current.node][adjIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
+                if (!matching.ContainsKey(adjNode) ||
+                    TryFindAugmentingPath(graph, matching[adjNode], visited, matching))
                 {
-                    if (!matching.ContainsKey(graph.Nodes[adjIndex]))
-                    {
-                        matching[graph.Nodes[adjIndex]] = current.node;
-                        backQueue.Push((graph.Nodes[adjIndex], current.node));
-                    }
-                    else
-                    {
-                        stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.depth + 1));
-                    }
+                    matching[adjNode] = startNode;
+                    return true;
                 }
             }
         }
+        
+        return false;
     }
 }
