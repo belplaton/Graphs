@@ -102,7 +102,7 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 					{
 						destination.ClearInput();
 						isUseOneDigitOffset = false;
-						i = 1;
+						i = 0;
 						break;
 					}
 				}
