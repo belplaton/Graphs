@@ -191,7 +191,7 @@ public static partial class GraphTester
     {
         result = default;
         if (input == null) return false;
-        var pair = input.Split(", ");
+        var pair = input.Split([' ', ','], StringSplitOptions.RemoveEmptyEntries);
         if (pair.Length < 2) return false;
         if (!int.TryParse(pair[0], out var first)) return false;
         if (!int.TryParse(pair[1], out var second)) return false;

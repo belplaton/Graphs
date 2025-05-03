@@ -113,15 +113,16 @@ public sealed class GraphMap
         const string RedStart = "\e[31m";
         const string ResetColor = "\e[0m";
 
-        double count = 0;
+        double routeLength = Math.Max(route.Count - 2, 0);
         double prev = 0;
 
         if (printRouteOnMap)
         {
             sb.AppendLine();
+            sb.Append("     ");
             for (var x = 0; x < Width; x++)
             {
-                sb.Append($"{x,8}");
+                sb.Append($"{x,8:0.##}");
             }
 
             sb.AppendLine();
@@ -135,7 +136,7 @@ public sealed class GraphMap
                 if (routeSet.Contains((x, y)))
                 {
                     if (printRouteOnMap) sb.Append($"{RedStart}{_mapMatrix[y][x],8}{ResetColor}");
-                    count += Math.Abs(_mapMatrix[y][x]!.Value - prev);
+                    routeLength += Math.Abs(_mapMatrix[y][x]!.Value - prev);
                     prev = _mapMatrix[y][x]!.Value;
                 }
                 else if (printRouteOnMap)
@@ -149,7 +150,7 @@ public sealed class GraphMap
     
         
         sb.AppendLine();
-        sb.AppendLine($"GraphMap: Length={count}");
+        sb.AppendLine($"GraphMap: Length={routeLength}");
         return sb.ToString();
     }
 }
