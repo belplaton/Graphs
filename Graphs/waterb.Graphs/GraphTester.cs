@@ -70,14 +70,16 @@ public static partial class GraphTester
             case GraphTestType.MinSpanningTree:
                 var r3Prim = graph.BuildMinimumSpanningTreePrim();
                 sb.AppendLine("Min Spanning Tree Prim:");
-                if (r3Prim != null) sb.AppendLine(string.Join(", ", r3Prim));   
+                if (r3Prim != null) sb.AppendLine(string.Join(", ", r3Prim));
+                sb.AppendLine();
                 
                 var r3Kruskal = graph.BuildMinimumSpanningTreeKruskal();
-                sb.AppendLine("Min Spanning Tree Prim:");
+                sb.AppendLine("Min Spanning Tree Kruskal:");
                 if (r3Kruskal != null) sb.AppendLine(string.Join(", ", r3Kruskal));   
+                sb.AppendLine();
                 
                 var r3Boruvka = graph.BuildMinimumSpanningTreeBoruvka();
-                sb.AppendLine("Min Spanning Tree Prim:");
+                sb.AppendLine("Min Spanning Tree Boruvka:");
                 if (r3Boruvka != null) sb.AppendLine(string.Join(", ", r3Boruvka));   
                 
                 break;
