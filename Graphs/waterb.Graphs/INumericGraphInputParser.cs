@@ -10,7 +10,7 @@ public interface INumericGraphInputCollector
 
 public interface INumericGraphInputParser
 {
-	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false);
+	public bool TryParse(INumericGraphInputCollector destination, string[] input);
 }
 
 public class RibsListNumericGraphInputParser : INumericGraphInputParser
@@ -25,11 +25,11 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 	// There are first line - count of vertexes. Vertexes numbered from 1 to N 
 	// Other any line is - 'from_num' 'to_num' 'weight'
 	
-	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input)
 	{
 		try
 		{
-			if (clearDestination) destination.ClearInput();
+			destination.ClearInput();
 			if (input.Length == 0) return false;
 			
 			for (var i = 1; i < input.Length; i++)
@@ -66,18 +66,19 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 	// ...
 	// 12:3 4:1 5:4
 	//
-	// There are first line - count of vertexes. Vertexes numbered from 1 to N 
+	// There are first line - count of vertexes. Vertexes numbered from 1 to N (or 0 to N - 1)
 	// Number of line is number of vertex
 	// All lines is: 'to_number:weight'. So line#3 "4:3 9:6" is two edges: 3-4(weight=3), 3-9(weight=6)
 	
-	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input)
 	{
 		try
 		{
-			if (clearDestination) destination.ClearInput();
+			destination.ClearInput();
 			if (input.Length == 0) return false;
                 
 			var vertexCount = int.Parse(input[0], CultureInfo.InvariantCulture);
+			var isUseOneDigitOffset = true;
 			for (var i = 1; i <= vertexCount && i < input.Length; i++)
 			{
 				var line = input[i].Trim();
@@ -95,8 +96,15 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 						to = int.Parse(parts[0], CultureInfo.InvariantCulture);
 						weight = double.Parse(parts[1], CultureInfo.InvariantCulture);
 					}
-
-					destination.Collect((i, to, weight));
+					
+					destination.Collect((i - (isUseOneDigitOffset ? 0 : 1), to, weight));
+					if (to == 0 && isUseOneDigitOffset)
+					{
+						destination.ClearInput();
+						isUseOneDigitOffset = false;
+						i = 1;
+						break;
+					}
 				}
 			}
 			
@@ -123,11 +131,11 @@ public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
 	// There are first line - count of vertexes. Vertexes numbered from 1 to N 
 	// All other lines - is adjacency matrix where - 0 is no rib, 1 - is rib
 	
-	public bool TryParse(INumericGraphInputCollector destination, string[] input, bool clearDestination = false)
+	public bool TryParse(INumericGraphInputCollector destination, string[] input)
 	{
 		try
 		{
-			if (clearDestination) destination.ClearInput();
+			destination.ClearInput();
 			if (input.Length == 0) return false;
                 
 			var vertexCount = int.Parse(input[0], CultureInfo.InvariantCulture);

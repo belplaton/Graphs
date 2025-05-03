@@ -134,7 +134,6 @@ public static partial class GraphAlgorithms
         
             for (var j = 0; j < component.Nodes.Count; j++)
             {
-                var nodeIndex = graph.GetIndex(component.Nodes[j])!.Value;
                 if (Math.Abs(currentData.nodesEccentricity[component.Nodes[j]] - currentData.diameter) <= double.Epsilon)
                     currentData.peripheralNodes.Add(component.Nodes[j]);
                 if (Math.Abs(currentData.nodesEccentricity[component.Nodes[j]] - currentData.radius) <= double.Epsilon)

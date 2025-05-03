@@ -23,13 +23,13 @@ public static partial class GraphAlgorithms
         
         (visited ??= new HashSet<TNode>()).Clear();
         (stack ??= new Stack<DFSEnumerator<TNode, TData>.DFSNode>()).Clear();
-        var color = new bool[graph.Size];
+        var color = new bool?[graph.Size];
         var isValid = true;
         
         for (var i = 0; i < graph.Size; i++)
         {
             var node = graph.Nodes[i];
-            if (!color[i])
+            if (!color[i].HasValue)
             {
                 using var enumerator = new DFSEnumerator<TNode, TData>(graph, node, visited, stack, 
                     (current, g, s, v) => OnPrepareStackChanges(current, g, s, v, color, ref isValid));
@@ -51,7 +51,7 @@ public static partial class GraphAlgorithms
         partB = new List<TNode>();
         for (var i = 0; i < graph.Size; i++)
         {
-            if (!color[i])
+            if (color[i]!.Value)
                 partA.Add(graph.Nodes[i]);
             else
                 partB.Add(graph.Nodes[i]);
@@ -59,18 +59,21 @@ public static partial class GraphAlgorithms
 
         return true;
         static void OnPrepareStackChanges(DFSEnumerator<TNode, TData>.DFSNode current, IGraph<TNode, TData> graph,
-            Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited, bool[] color, ref bool isValid)
+            Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited, bool?[] color, ref bool isValid)
         {
             var currentIndex = graph.GetIndex(current.node)!.Value;
             for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
             {
-                if (graph[adjIndex][currentIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
+                if (graph[adjIndex][currentIndex].HasValue)
                 {
-                    stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.depth + 1));
-                }
-                else if (color[adjIndex] != ((current.depth + 1) % 2 == 0))
-                {
-                    isValid = false;
+                    if (!visited.Contains(graph.Nodes[adjIndex]))
+                    {
+                        stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.depth + 1));
+                    }
+                    else if (color[adjIndex].HasValue && color[adjIndex] != ((current.depth + 1) % 2 == 0))
+                    {
+                        isValid = false;
+                    }
                 }
             }
         }

@@ -9,6 +9,7 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 	private GraphSettings _desiredSettings;
 	private int _maxVertex;
 	private bool _isAnyWeighted;
+	private bool _isRequireNodeOneOffset = true;
 
 	private GraphSettings _settings => _desiredSettings |
 		(_isAnyWeighted ? GraphSettings.IsWeighted : GraphSettings.None) |
@@ -23,6 +24,7 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 	public NumericGraphBuilder<TData> AddRib(int from, int to, double? weight)
 	{
 		if (weight != null) _isAnyWeighted = true;
+		if (from == 0 || to == 0) _isRequireNodeOneOffset = false;
 
 		var data = (from, to, weight);
 		var reverseData = (to, from, weight);
@@ -42,6 +44,7 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 		_desiredSettings = GraphSettings.None;
 		_maxVertex = 0;
 		_isAnyWeighted = false;
+		_isRequireNodeOneOffset = true;
 		return this;
 	}
 
@@ -65,9 +68,10 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 	{
 		var graph = new GraphMatrix<int, TData>(_settings);
 
-		for (var i = graph.Size; i < _maxVertex; i++)
+		var offset = _isRequireNodeOneOffset ? 1 : 0;
+		for (var i = 0; i < _maxVertex; i++)
 		{
-			graph.AddNode(i + 1, default);
+			graph.AddNode(i + offset, default);
 		}
 
 		foreach (var rib in _ribs)
