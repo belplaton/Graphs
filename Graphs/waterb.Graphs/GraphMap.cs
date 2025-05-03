@@ -94,7 +94,7 @@ public sealed class GraphMap
         return sb.ToString();
     }
     
-    public string PrepareMapInfoRoute(List<(int x, int y)> route, bool printRouteOnMap)
+    public string PrepareMapInfoPath(List<(int x, int y)> path, double pathLength, bool printRouteOnMap)
     {
         var sb = new StringBuilder();
         sb.AppendLine($"GraphMap: Height={Height}, Width={Width}\n");
@@ -102,19 +102,16 @@ public sealed class GraphMap
         
         sb.AppendLine("Route List: [");
         var routeSet = new HashSet<(int x, int y)>();
-        for (var i = 0; i < route.Count; i++)
+        for (var i = 0; i < path.Count; i++)
         {
-            routeSet.Add(route[i]);
-            sb.Append($"({route[i].x}, {route[i].y}), ");
+            routeSet.Add(path[i]);
+            sb.Append($"({path[i].x}, {path[i].y}), ");
         }
 
         sb.Append("]\n");
     
         const string RedStart = "\e[31m";
         const string ResetColor = "\e[0m";
-
-        double routeLength = Math.Max(route.Count - 2, 0);
-        double prev = 0;
 
         if (printRouteOnMap)
         {
@@ -136,8 +133,6 @@ public sealed class GraphMap
                 if (routeSet.Contains((x, y)))
                 {
                     if (printRouteOnMap) sb.Append($"{RedStart}{_mapMatrix[y][x],8}{ResetColor}");
-                    routeLength += Math.Abs(_mapMatrix[y][x]!.Value - prev);
-                    prev = _mapMatrix[y][x]!.Value;
                 }
                 else if (printRouteOnMap)
                 {
@@ -150,7 +145,7 @@ public sealed class GraphMap
     
         
         sb.AppendLine();
-        sb.AppendLine($"GraphMap: Length={routeLength}");
+        sb.AppendLine($"GraphMap: Length={pathLength}");
         return sb.ToString();
     }
 }

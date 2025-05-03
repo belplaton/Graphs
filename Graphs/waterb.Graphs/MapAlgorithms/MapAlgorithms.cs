@@ -2,7 +2,7 @@ namespace waterb.Graphs.MapAlgorithms;
 
 public static partial class MapAlgorithms
 {
-	public static List<(int x, int y)>? FindPathDijkstra(this GraphMap graphMap, (int x, int y) from, (int x, int y) to)
+	public static (List<(int x, int y)> path, double length)? FindPathDijkstra(this GraphMap graphMap, (int x, int y) from, (int x, int y) to)
 	{
 		var dist = new Dictionary<(int x, int y), double>();
 		var prev = new Dictionary<(int x, int y), (int x, int y)>();
@@ -44,10 +44,10 @@ public static partial class MapAlgorithms
 		}
 		
 		path.Reverse();
-		return path;
+		return (path, dist[to] + path.Count - 1);
 	}
 	
-	public static List<(int x, int y)>? FindPathAStar(this GraphMap graphMap,
+	public static (List<(int x, int y)> path, double length)? FindPathAStar(this GraphMap graphMap,
 		(int x, int y) from, (int x, int y) to, DistanceMetric metric = DistanceMetric.Euclid)
     {
         var gScore = new Dictionary<(int x, int y), double>();
@@ -96,6 +96,6 @@ public static partial class MapAlgorithms
             path.Add(node);
         }
         
-        return path;
+        return (path, gScore[to] + path.Count - 1);
     }
 }
