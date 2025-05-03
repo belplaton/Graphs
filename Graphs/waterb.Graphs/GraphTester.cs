@@ -27,16 +27,26 @@ public static partial class GraphTester
             case GraphTestType.ConnectedComponents:
                 if ((graph.Settings & GraphSettings.IsDirected) != 0)
                 {
+                    sb.AppendLine("Graph is directed\n");
+                    
                     var r1Weak = graph.FindWeakConnectedComponents();
+                    if (r1Weak is { Count: 1 })
+                        sb.AppendLine("Digraph is weakly connected");
+                    else sb.AppendLine("Digraph is not weakly connected");
                     sb.AppendLine("Weak Connected Components:");
                     if (r1Weak != null) sb.AppendLine(string.Join("\n", r1Weak));
+                    sb.AppendLine();
                     
                     var r1Strong = graph.FindStrongConnectedComponents();
+                    if (r1Strong is { Count: 1 })
+                        sb.AppendLine("Digraph is strongly connected");
+                    else sb.AppendLine("Digraph is not strongly connected");
                     sb.AppendLine("Strong Connected Components:");
                     if (r1Strong != null) sb.AppendLine(string.Join("\n", r1Strong));
                 }
                 else
                 {
+                    sb.AppendLine("Graph is not directed\n");
                     var r1 = graph.FindConnectedComponents();
                     sb.AppendLine("Connected Components:");
                     if (r1 != null) sb.AppendLine(string.Join("\n", r1));
