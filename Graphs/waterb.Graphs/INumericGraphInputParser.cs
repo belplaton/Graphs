@@ -1,19 +1,19 @@
 using System.Globalization;
+using Exception = System.Exception;
 
 namespace waterb.Graphs;
 
-public interface INumericGraphInputCollector
+public interface INumericGraphInputCollector : IGraphInputCollector<int, int>
 {
-	public void Collect((int from, int to, double? weight) data);
-	public void ClearInput();
+
 }
 
-public interface INumericGraphInputParser
+public interface INumericGraphInputParser : IGraphInputParser<int, int, INumericGraphInputCollector>
 {
-	public bool TryParse(INumericGraphInputCollector destination, string[] input);
+
 }
 
-public class RibsListNumericGraphInputParser : INumericGraphInputParser
+public sealed class RibsListNumericGraphInputParser : INumericGraphInputParser
 {
 	// Formatting input for numeric graph.
 	// Example:
@@ -37,14 +37,15 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 				var line = input[i].Trim();
 				if (string.IsNullOrEmpty(line)) continue;
                     
-				var parts = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+				var parts = line.Split([' ', '\t'], StringSplitOptions.RemoveEmptyEntries);
 				if (parts.Length < 2) continue; 
                     
 				var from = int.Parse(parts[0], CultureInfo.InvariantCulture);
 				var to = int.Parse(parts[1], CultureInfo.InvariantCulture);
 				double? weight = parts.Length >= 3 ? double.Parse(parts[2], CultureInfo.InvariantCulture) : null;
                     
-				destination.Collect((from, to, weight));
+				destination.Collect(
+					(new NodeDataPair<int, int>(from, from), new NodeDataPair<int, int>(to, to), weight));
 			}
 			
 			return true;
@@ -56,7 +57,7 @@ public class RibsListNumericGraphInputParser : INumericGraphInputParser
 	}
 }
 
-public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
+public sealed class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 {
 	// Formatting input for numeric graph.
 	// Example:
@@ -96,8 +97,10 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 						to = int.Parse(parts[0], CultureInfo.InvariantCulture);
 						weight = double.Parse(parts[1], CultureInfo.InvariantCulture);
 					}
-					
-					destination.Collect((i - (isUseOneDigitOffset ? 0 : 1), to, weight));
+
+					var from = i - (isUseOneDigitOffset ? 0 : 1);
+					destination.Collect(
+						(new NodeDataPair<int, int>(from, from), new NodeDataPair<int, int>(to, to), weight));
 					if (to == 0 && isUseOneDigitOffset)
 					{
 						destination.ClearInput();
@@ -117,7 +120,7 @@ public class AdjacencyListNumericGraphInputParser : INumericGraphInputParser
 	}
 }
 
-public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
+public sealed class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
 {
 	// Formatting input for numeric graph.
 	// Example:
@@ -153,7 +156,10 @@ public class AdjacencyMatrixNumericGraphInputParser : INumericGraphInputParser
 					var weight = double.Parse(tokens[j], CultureInfo.InvariantCulture);
 					if (weight != 0)
 					{
-						destination.Collect((i, j + 1, Math.Abs(weight - 1) > double.Epsilon ? weight : null));
+						destination.Collect((
+							new NodeDataPair<int, int>(i, i), 
+							new NodeDataPair<int, int>(j + 1, j + 1),
+							Math.Abs(weight - 1) > double.Epsilon ? weight : null));
 					}
 				}
 			}

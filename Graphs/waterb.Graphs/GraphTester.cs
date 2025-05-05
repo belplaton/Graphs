@@ -6,7 +6,7 @@ namespace waterb.Graphs;
 
 public static partial class GraphTester
 {
-    public static string PrepareResults<TNumericGraphInputParser, TData>(string pathInput, GraphTestType mapTestType)
+    public static string PrepareResults<TNumericGraphInputParser>(string pathInput, GraphTestType mapTestType)
         where TNumericGraphInputParser : INumericGraphInputParser, new()
     {
         if (!File.Exists(pathInput))
@@ -16,7 +16,7 @@ public static partial class GraphTester
         }
 		
         var lines = File.ReadAllLines(pathInput);
-        var builder = new NumericGraphBuilder<TData>();
+        var builder = new NumericGraphBuilder();
         builder.ParsePayloadInput<TNumericGraphInputParser>(lines);
         var graph = builder.CreateGraph();
         var sb = new StringBuilder();
@@ -123,6 +123,52 @@ public static partial class GraphTester
                 else
                 {
                     sb.AppendLine("Graph is not bipartite");
+                }
+                
+                break;
+            case GraphTestType.FordBellmanShortestPath:
+                Console.WriteLine("Enter start node name (integer): ");
+                var t8Input = Console.ReadLine();
+                if (!int.TryParse(t8Input, out var t8StartNode))
+                {
+                    Console.WriteLine("Error with parsing start node");
+                    return "No results.";
+                }
+                
+                var r8 = graph.FindShortestPathsFordBellman(t8StartNode);
+                if (r8 != null)
+                {
+                    sb.AppendLine($"Shortest paths lengths from node {t8StartNode}: ");
+                    sb.AppendLine($"[{string.Join(", ", r8.Select(x => $"{x.Key}: {x.Value}"))}]");
+                }
+                else
+                {
+                    sb.AppendLine("Graph includes a negative cycle.");
+                }
+                
+                break;
+            case GraphTestType.FordFulkersonMaxFlow:
+                Console.WriteLine("Enter flow node name (integer): ");
+                var t9Input1 = Console.ReadLine();
+                if (!int.TryParse(t9Input1, out var t9FlowNode))
+                {
+                    Console.WriteLine("Error with parsing start node");
+                    return "No results.";
+                }
+                
+                Console.WriteLine("Enter sink node name (integer): ");
+                var t9Input2 = Console.ReadLine();
+                if (!int.TryParse(t9Input2, out var t9SinkNode))
+                {
+                    Console.WriteLine("Error with parsing start node");
+                    return "No results.";
+                }
+                
+                var r9 = graph.FindMaxFlowFordFulkerson(t9FlowNode, t9SinkNode);
+                sb.AppendLine($"Maximum flow value: {r9?.maxFlow ?? 0}");
+                if (r9.HasValue)
+                {
+                    sb.AppendLine($"Flow list: [{string.Join(", ", r9.Value.flow)}]");
                 }
                 
                 break;

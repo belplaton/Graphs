@@ -2,10 +2,12 @@ namespace waterb.Graphs;
 
 #nullable disable
 
-public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>, int, TData>, INumericGraphInputCollector
+public class NumericGraphBuilder : IGraphBuilder<GraphMatrix<int, int>, int, int>, INumericGraphInputCollector
 {
-	private readonly HashSet<(int from, int to, double? weight)> _ribs = [];
-	private readonly HashSet<(int from, int to, double? weight)> _missingReverseRibs = [];
+	private readonly HashSet<
+		(NodeDataPair<int, int> from, NodeDataPair<int, int> to, double? weight)> _ribs = [];
+	private readonly HashSet<
+		(NodeDataPair<int, int> from, NodeDataPair<int, int> to, double? weight)> _missingReverseRibs = [];
 	private GraphSettings _desiredSettings;
 	private int _maxVertex;
 	private bool _isAnyWeighted;
@@ -15,16 +17,16 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 		(_isAnyWeighted ? GraphSettings.IsWeighted : GraphSettings.None) |
 		(_missingReverseRibs.Count != 0 ? GraphSettings.IsDirected : GraphSettings.None);
 
-	public NumericGraphBuilder<TData> SetDesiredSettings(GraphSettings settings)
+	public NumericGraphBuilder SetDesiredSettings(GraphSettings settings)
 	{
 		_desiredSettings = settings;
 		return this;
 	}
 	
-	public NumericGraphBuilder<TData> AddRib(int from, int to, double? weight)
+	public NumericGraphBuilder AddRib(NodeDataPair<int, int> from, NodeDataPair<int, int> to, double? weight)
 	{
 		if (weight != null) _isAnyWeighted = true;
-		if (from == 0 || to == 0) _isRequireNodeOneOffset = false;
+		if (from.node == 0 || to.node == 0) _isRequireNodeOneOffset = false;
 
 		var data = (from, to, weight);
 		var reverseData = (to, from, weight);
@@ -33,11 +35,11 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 		_missingReverseRibs.Remove(data);
 		_ribs.Add((from, to, weight));
 		
-		_maxVertex = Math.Max(_maxVertex, Math.Max(to, from));
+		_maxVertex = Math.Max(_maxVertex, Math.Max(to.node, from.node));
 		return this;
 	}
 	
-	public NumericGraphBuilder<TData> Clear()
+	public NumericGraphBuilder Clear()
 	{
 		_ribs.Clear();
 		_missingReverseRibs.Clear();
@@ -48,7 +50,7 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 		return this;
 	}
 
-	public NumericGraphBuilder<TData> ParsePayloadInput<TParser>(string[] input)
+	public NumericGraphBuilder ParsePayloadInput<TParser>(string[] input)
 		where TParser : INumericGraphInputParser, new()
 	{
 		var parser = new TParser();
@@ -57,16 +59,16 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 		return this;
 	}
 	
-	public void Collect((int from, int to, double? weight) data)
+	public void Collect((NodeDataPair<int, int> from, NodeDataPair<int, int> to, double? weight) data)
 	{
 		AddRib(data.from, data.to, data.weight);
 	}
 
 	public void ClearInput() => Clear();
 	
-	public GraphMatrix<int, TData> CreateGraph()
+	public GraphMatrix<int, int> CreateGraph()
 	{
-		var graph = new GraphMatrix<int, TData>(_settings);
+		var graph = new GraphMatrix<int, int>(_settings);
 
 		var offset = _isRequireNodeOneOffset ? 1 : 0;
 		for (var i = 0; i < _maxVertex; i++)
@@ -76,9 +78,9 @@ public class NumericGraphBuilder<TData> : IGraphBuilder<GraphMatrix<int, TData>,
 
 		foreach (var rib in _ribs)
 		{
-			graph.SetData(rib.from, default);
-			graph.SetData(rib.to, default);
-			graph.SetEdge(rib.from, rib.to, rib.weight);
+			graph.SetData(rib.from.node, rib.from.data);
+			graph.SetData(rib.to.node, rib.to.data);
+			graph.SetEdge(rib.from.node, rib.to.node, rib.weight);
 		}
 
 		return graph;
