@@ -13,6 +13,7 @@ public static partial class GraphTester
         FindGraphBipartite,
         FindGraphMaxBipartiteMatching,
         FordBellmanShortestPath,
-        FordFulkersonMaxFlow
+        FordFulkersonMaxFlow,
+        HamiltonianCycleAntColony
     }
 }

@@ -172,6 +172,15 @@ public static partial class GraphTester
                 }
                 
                 break;
+            case GraphTestType.HamiltonianCycleAntColony:
+                var r10 = graph.FindHamiltonianCycleAntColony();
+                sb.AppendLine($"Length of shortest traveling salesman path is: {r10?.pathLength ?? 0}");
+                if (r10.HasValue)
+                {
+                    sb.AppendLine($"Traveling Path: [{string.Join(", ", r10.Value.path)}]");
+                }
+                
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mapTestType), mapTestType, null);
         }
