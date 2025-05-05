@@ -6,7 +6,7 @@ internal static class Program
 	{
 		if (args.Length > 0 && args[0] == "--help")
 		{
-			Console.WriteLine($"Structures Available For Test: Graph, Map\n");
+			Console.WriteLine("Structures Available For Test: Graph, Map\n");
 
 			Console.WriteLine($"Graph Test Types: {
 				string.Join(", ", Enum.GetValues<GraphTester.GraphTestType>())}\n");
@@ -53,11 +53,11 @@ internal static class Program
 
 					var result1 = inputParserStr switch
 					{
-						"RibList" => GraphTester.PrepareResults<RibsListNumericGraphInputParser, int>(
+						"RibList" => GraphTester.PrepareResults<RibsListNumericGraphInputParser>(
 							inputPath, graphTestType),
-						"AdjacencyList" => GraphTester.PrepareResults<AdjacencyListNumericGraphInputParser, int>(
+						"AdjacencyList" => GraphTester.PrepareResults<AdjacencyListNumericGraphInputParser>(
 							inputPath, graphTestType),
-						"AdjacencyMatrix" => GraphTester.PrepareResults<AdjacencyMatrixNumericGraphInputParser, int>(
+						"AdjacencyMatrix" => GraphTester.PrepareResults<AdjacencyMatrixNumericGraphInputParser>(
 							inputPath, graphTestType),
 						_ => "No result."
 					};
@@ -100,5 +100,8 @@ internal static class Program
 			Console.WriteLine($"Error during {args[0]} processing:");
 			Console.WriteLine(ex.Message);
 		}
+		
+		Console.WriteLine("Finish. Press any key to leave...");
+		Console.ReadLine();
 	}
 }
