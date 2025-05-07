@@ -84,7 +84,7 @@ public static partial class GraphAlgorithms
 			{
 				var component = new ConnectedComponent<TNode>();
 				using var enumerator = new DFSEnumerator<TNode, TData>(graph, node, visited, stack);
-				while (enumerator.MoveNext()) component.Nodes.Add(enumerator.Current.node);
+				while (enumerator.MoveNext()) component.Nodes.Add(enumerator.Current.Node);
 				components.Add(component);
 			}
 		}
@@ -103,12 +103,13 @@ public static partial class GraphAlgorithms
 	}
 	
 	// oriented graph only
-	public static List<ConnectedComponent<TNode>>? FindWeakConnectedComponents<TNode, TData>(this IGraph<TNode, TData> graph,
-		ref HashSet<TNode>? visited, ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)
+	public static List<ConnectedComponent<TNode>>? FindWeakConnectedComponents<TNode, TData>(
+		this IGraph<TNode, TData> graph, ref HashSet<TNode>? visited,
+		ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)
 	{
 		if (graph.Size == 0) return null;
 		
-		(visited ??= new HashSet<TNode>()).Clear();
+		(visited ??= []).Clear();
 		(stack ??= new Stack<DFSEnumerator<TNode, TData>.DFSNode>()).Clear();
 		var components = new List<ConnectedComponent<TNode>>();
 
@@ -119,7 +120,7 @@ public static partial class GraphAlgorithms
 			{
 				var component = new ConnectedComponent<TNode>();
 				using var enumerator = new DFSEnumerator<TNode, TData>(graph, node, visited, stack, OnPrepareStackChangesWeakComponents);
-				while (enumerator.MoveNext()) component.Nodes.Add(enumerator.Current.node);
+				while (enumerator.MoveNext()) component.Nodes.Add(enumerator.Current.Node);
 				components.Add(component);
 			} 
 		}
@@ -128,13 +129,13 @@ public static partial class GraphAlgorithms
 		static void OnPrepareStackChangesWeakComponents(DFSEnumerator<TNode, TData>.DFSNode current, 
 			IGraph<TNode, TData> graph, Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited)
 		{
-			var currentIndex = graph.GetIndex(current.node)!.Value;
+			var currentIndex = graph.GetIndex(current.Node)!.Value;
 			for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
 			{
 				if ((graph[currentIndex][adjIndex].HasValue || graph[adjIndex][currentIndex].HasValue) &&
 				    !visited.Contains(graph.Nodes[adjIndex]))
 				{
-					stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.depth + 1));
+					stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.Depth + 1));
 				}
 			}
 		}
@@ -172,15 +173,15 @@ public static partial class GraphAlgorithms
 			var currentNode = exitTimeEnumerator.MoveNext() 
 				? exitTimeEnumerator.Current : (DFSEnumerator<TNode, TData>.DFSNode?)null;
 			
-			while (reversalStack.Count > 0 && reversalStack.Peek().depth >= exitTimeEnumerator.Current.depth)
+			while (reversalStack.Count > 0 && reversalStack.Peek().Depth >= exitTimeEnumerator.Current.Depth)
 			{
 				var data = reversalStack.Pop();
-				nodesExitTime[graph.GetIndex(data.node)!.Value] = (data.node, lastExitTime++);
+				nodesExitTime[graph.GetIndex(data.Node)!.Value] = (data.Node, lastExitTime++);
 			}
 			
 			if (currentNode != null)
 			{
-				nodesExitTime[graph.GetIndex(currentNode.Value.node)!.Value] = (currentNode.Value.node, lastExitTime++);
+				nodesExitTime[graph.GetIndex(currentNode.Value.Node)!.Value] = (currentNode.Value.Node, lastExitTime++);
 				reversalStack.Push(currentNode.Value);
 			}
 			
@@ -201,7 +202,7 @@ public static partial class GraphAlgorithms
 					var component = new ConnectedComponent<TNode>();
 					using var componentEnumerator = new DFSEnumerator<TNode, TData>(graph, node,
 						visited, stack, OnPrepareStackChangesStrongComponents);
-					while (componentEnumerator.MoveNext()) component.Nodes.Add(componentEnumerator.Current.node);
+					while (componentEnumerator.MoveNext()) component.Nodes.Add(componentEnumerator.Current.Node);
 					components.Add(component);
 				}
 			}
@@ -211,12 +212,12 @@ public static partial class GraphAlgorithms
 		static void OnPrepareStackChangesStrongComponents(DFSEnumerator<TNode, TData>.DFSNode current,
 			IGraph<TNode, TData> graph, Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited)
 		{
-			var currentIndex = graph.GetIndex(current.node)!.Value;
+			var currentIndex = graph.GetIndex(current.Node)!.Value;
 			for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
 			{
 				if (graph[adjIndex][currentIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
 				{
-					stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.depth + 1));
+					stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.Depth + 1));
 				}
 			}
 		}
@@ -344,8 +345,8 @@ public static partial class GraphAlgorithms
             Stack<(int currentIndex, int neighbourIndex)> reversalStack,
             GraphJoints<TNode> joints)
         {
-            var currentNodeIndex = graph.GetIndex(current.node)!.Value;
-            if (!visited.Contains(current.node))
+            var currentNodeIndex = graph.GetIndex(current.Node)!.Value;
+            if (!visited.Contains(current.Node))
             {
 	            nodesInfo[currentNodeIndex] = (lowTime: lastEnterTime, discoverTime: lastEnterTime,
 		            nodesInfo[currentNodeIndex].parentIndex);
@@ -355,7 +356,7 @@ public static partial class GraphAlgorithms
             var childrensCount = 0;
             for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
             {
-	            if (graph[current.node][adjIndex].HasValue)
+	            if (graph[current.Node][adjIndex].HasValue)
 	            {
 		            var neighbor = graph.Nodes[adjIndex];
 		            if (adjIndex == nodesInfo[currentNodeIndex].parentIndex) continue;
@@ -369,7 +370,7 @@ public static partial class GraphAlgorithms
 		            else
 		            {
 			            nodesInfo[adjIndex] = (nodesInfo[adjIndex].lowTime, nodesInfo[adjIndex].discoverTime, currentNodeIndex);
-			            stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(neighbor, current.depth + 1));
+			            stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(neighbor, current.Depth + 1));
 			            reversalStack.Push((currentNodeIndex, adjIndex));
 			            childrensCount++;
 		            }
@@ -378,7 +379,7 @@ public static partial class GraphAlgorithms
             
             if (nodesInfo[currentNodeIndex].parentIndex == null && childrensCount > 1)
             {
-	            joints.Joints.Add(current.node);
+	            joints.Joints.Add(current.Node);
             }
         }
 	}

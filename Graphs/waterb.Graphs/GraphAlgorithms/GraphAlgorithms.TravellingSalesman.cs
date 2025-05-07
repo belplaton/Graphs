@@ -7,7 +7,6 @@ public static partial class GraphAlgorithms
 	public readonly struct HamiltonianCycleAntColonyData
 	{
 		public readonly int    MaxIterations;
-		public readonly 
 		public readonly double Alpha;          // influence of pheromones 
 		public readonly double Beta;           // influence of heuristics (1/distance)
 		public readonly double Evaporation;    // speed of evaporation (0..1)
@@ -150,5 +149,132 @@ public static partial class GraphAlgorithms
 		    graph.Nodes[bestIdx[^1]], graph.Nodes[bestIdx[0]],
 	        graph[bestIdx[^1]][bestIdx[0]]!.Value));
         return (bestLen, result);
+    }
+	
+	public static (double pathLength, List<RibData<TNode>> path)? FindHamiltonianCycleBnB<TNode, TData>(
+        this IGraph<TNode, TData> graph, ref HashSet<TNode>? visited,
+        ref Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack)
+        where TNode : notnull
+	{
+		switch (graph.Size)
+		{
+			case 0: return (0, []);
+			case 1: return (0, [new RibData<TNode>(graph.Nodes[0], graph.Nodes[0], 0)]);
+		}
+		
+        var minOut = new double[graph.Size];
+        for (var fromIndex = 0; fromIndex < graph.Size; fromIndex++)
+        {
+	        var currentMinOut = double.PositiveInfinity;
+            for (var toIndex = 0; toIndex < graph.Size; toIndex++)
+            {
+	            if (graph[fromIndex][toIndex].HasValue && fromIndex != toIndex &&
+	                graph[fromIndex][toIndex]!.Value < currentMinOut)
+	            {
+		            currentMinOut = graph[fromIndex][toIndex]!.Value;
+	            }
+            }
+            
+            if (double.IsPositiveInfinity(currentMinOut)) return null;
+            minOut[fromIndex] = currentMinOut;
+        }
+        
+        var bestLen = double.PositiveInfinity;
+        int[]? bestPathIdx = null;
+        var pathStack = new int[graph.Size];
+        var used = new bool[graph.Size];
+        
+        (visited ??= []).Clear();
+        (stack ??= new Stack<DFSEnumerator<TNode, TData>.DFSNode>()).Clear();
+
+        using var enumerator = new DFSEnumerator<TNode, TData>(graph, graph.Nodes[0], visited, stack);
+        while (enumerator.MoveNext())
+        {
+	        if (enumerator.Current.Depth < graph.Size - 1)
+	        {
+		        
+	        }
+	        else
+	        {
+		        
+	        }
+        }
+        
+        // стартуем из нулевой вершины (можно попробовать все для симметричности)
+        used[0] = true;
+        pathStack[0] = 0;
+        Dfs(1, 0);
+
+        if (bestPathIdx is null) return null;
+
+        // формируем список рёбер результата (+ замыкающая дуга)
+        var ribs = new List<RibData<TNode>>(graph.Size);
+        for (int i = 0; i < graph.Size - 1; i++)
+        {
+            int from = bestPathIdx[i];
+            int to   = bestPathIdx[i + 1];
+            ribs.Add(new RibData<TNode>(graph.Nodes[from], graph.Nodes[to],
+                         graph[from][to]!.Value));
+        }
+        // замыкаем
+        ribs.Add(new RibData<TNode>(graph.Nodes[bestPathIdx[^1]], graph.Nodes[bestPathIdx[0]],
+                     graph[bestPathIdx[^1]][bestPathIdx[0]]!.Value));
+
+        return (bestLen, ribs);
+        
+        static void OnPrepareStackChanges(DFSEnumerator<TNode, TData>.DFSNode current, IGraph<TNode, TData> graph,
+	        Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited)
+        {
+	        var lowerBound = 
+	        for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
+	        {
+		        if (graph[current.Node][adjIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
+		        {
+			        stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.Depth + 1));
+		        }
+	        }
+        }
+        
+        // рекурсивный DFS
+        void Dfs(int depth, double currLen)
+        {
+	        int current = pathStack[depth - 1];
+
+	        // --- нижняя граница для отсечения -------------------------
+	        double lb = currLen + minOut[current];           // обяз. выход
+	        for (int v = 0; v < graph.Size; v++)
+		        if (!used[v]) lb += minOut[v];
+	        lb += minOut[pathStack[0]];                      // возврат
+
+	        if (lb >= bestLen) return; // ветка бесперспективна
+
+	        // --- если обошли все вершины ------------------------------
+	        if (depth == graph.Size)
+	        {
+		        var backW = graph[current][pathStack[0]];
+		        if (!backW.HasValue || backW.Value <= 0) return; // нет замыкания
+
+		        double total = currLen + backW.Value;
+		        if (total < bestLen)
+		        {
+			        bestLen = total;
+			        bestPathIdx = (int[])pathStack.Clone(); // содержит n вершин
+		        }
+		        return;
+	        }
+
+	        // --- ветвление -------------------------------------------
+	        for (int next = 0; next < graph.Size; next++)
+	        {
+		        if (used[next]) continue;
+		        var w = graph[current][next];
+		        if (!w.HasValue || w.Value <= 0) continue;
+
+		        used[next] = true;
+		        pathStack[depth] = next;
+		        Dfs(depth + 1, currLen + w.Value);
+		        used[next] = false;
+	        }
+        }
     }
 }

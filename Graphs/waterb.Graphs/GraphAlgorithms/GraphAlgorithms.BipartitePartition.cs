@@ -42,7 +42,7 @@ public static partial class GraphAlgorithms
                         return false;
                     }
                     
-                    color[graph.GetIndex(enumerator.Current.node)!.Value] = enumerator.Current.depth % 2 == 0;
+                    color[graph.GetIndex(enumerator.Current.Node)!.Value] = enumerator.Current.Depth % 2 == 0;
                 }
             }
         }
@@ -61,16 +61,16 @@ public static partial class GraphAlgorithms
         static void OnPrepareStackChanges(DFSEnumerator<TNode, TData>.DFSNode current, IGraph<TNode, TData> graph,
             Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited, bool?[] color, ref bool isValid)
         {
-            var currentIndex = graph.GetIndex(current.node)!.Value;
+            var currentIndex = graph.GetIndex(current.Node)!.Value;
             for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
             {
                 if (graph[adjIndex][currentIndex].HasValue)
                 {
                     if (!visited.Contains(graph.Nodes[adjIndex]))
                     {
-                        stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.depth + 1));
+                        stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.Depth + 1));
                     }
-                    else if (color[adjIndex].HasValue && color[adjIndex] != ((current.depth + 1) % 2 == 0))
+                    else if (color[adjIndex].HasValue && color[adjIndex] != ((current.Depth + 1) % 2 == 0))
                     {
                         isValid = false;
                     }

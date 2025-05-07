@@ -33,14 +33,14 @@ public static partial class GraphAlgorithms
 			IGraph<TNode, TData> graph, Stack<DFSEnumerator<TNode, TData>.DFSNode> stack, HashSet<TNode> visited,
 			List<RibData<TNode>> spanningTreeEdges)
 		{
-			var currentIndex = graph.GetIndex(current.node)!.Value;
+			var currentIndex = graph.GetIndex(current.Node)!.Value;
 			for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
 			{
 				if (graph[adjIndex][currentIndex].HasValue && !visited.Contains(graph.Nodes[adjIndex]))
 				{
-					stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.depth + 1));
+					stack.Push(new DFSEnumerator<TNode, TData>.DFSNode(graph.Nodes[adjIndex], current.Depth + 1));
 					spanningTreeEdges.Add(new RibData<TNode>(
-						current.node, graph.Nodes[adjIndex], graph[currentIndex][adjIndex]!.Value));
+						current.Node, graph.Nodes[adjIndex], graph[currentIndex][adjIndex]!.Value));
 				}
 			}
 		}
