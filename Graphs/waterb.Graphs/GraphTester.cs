@@ -181,6 +181,15 @@ public static partial class GraphTester
                 }
                 
                 break;
+            case GraphTestType.HamiltonianCycleBnB:
+                var r11 = graph.FindHamiltonianCycleBnB();
+                sb.AppendLine($"Length of shortest traveling salesman path is: {r11?.pathLength ?? 0}");
+                if (r11.HasValue)
+                {
+                    sb.AppendLine($"Traveling Path: [{string.Join(", ", r11.Value.path)}]");
+                }
+                
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mapTestType), mapTestType, null);
         }

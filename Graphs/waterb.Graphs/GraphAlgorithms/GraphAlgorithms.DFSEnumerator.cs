@@ -5,16 +5,6 @@ namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
 {
-	public interface IDFSEnumerator<TNode, TData, TDFSNode> : IEnumerator<TDFSNode>
-		where TDFSNode : struct, IDFSEnumerator<TNode, TData, TDFSNode>.IDFSNode
-	{
-		public interface IDFSNode
-		{
-			public TNode Node { get; init; }
-			public int Depth { get; init; }
-		}
-	}
-	
 	public struct DFSEnumerator<TNode, TData, TDFSNode> : IDFSEnumerator<TNode, TData, TDFSNode>
 		where TDFSNode : struct, IDFSEnumerator<TNode, TData, TDFSNode>.IDFSNode
 	{
