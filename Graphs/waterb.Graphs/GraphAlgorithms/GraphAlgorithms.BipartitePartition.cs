@@ -1,3 +1,5 @@
+using waterb.Utility;
+
 namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
@@ -128,6 +130,96 @@ public static partial class GraphAlgorithms
         return false;
     }
     
+    // non-oriented graph only
+    public static bool CheckPlanarNaive<TNode, TData>(this IGraph<TNode, TData> graph) where TNode : notnull
+    {
+        if (graph.Size < 5) return true;
+        var components = graph.FindConnectedComponents();
+        if (components == null) return true;
+        for (var i = 0; i < components.Count; i++)
+        {
+            if (!IsComponentPlanar(graph, components[i])) return false;
+        }
+
+        return true;
+
+        static bool IsComponentPlanar(IGraph<TNode, TData> graph, ConnectedComponent<TNode> component)
+        {
+            if (component.Count <= 2) return true;
+
+            var nodes = new IndexedSet<TNode>(component.Nodes);
+            var adjacency = new bool[component.Count][];
+            for (var i = 0; i < component.Count; i++) adjacency[i] = new bool[graph.Size];
+            for (var i = 0; i < component.Count; i++)
+            {
+                for (var j = i + 1; j < component.Count; j++)
+                {
+                    adjacency[i][j] = adjacency[j][i] =
+                        graph[component[i]][graph.GetIndex(component[j])!.Value].HasValue ||
+                        graph[component[j]][graph.GetIndex(component[i])!.Value].HasValue;
+                }
+            }
+
+            while (nodes.Count > 3)
+            {
+                var lowDegreeVertexIndex = FindLowDegreeVertex(adjacency, nodes.Count);
+                if (lowDegreeVertexIndex == -1) return false;
+
+                var degree = Degree(adjacency, lowDegreeVertexIndex, nodes.Count);
+                if (degree > 1)
+                {
+                    int a = -1, b = -1;
+                    for (var j = 0; j < nodes.Count; j++)
+                    {
+                        if (adjacency[lowDegreeVertexIndex][j])
+                        {
+                            if (a == -1) a = j;
+                            else { b = j; break; }
+                        }
+                    }
+                    
+                    if (a != -1 && b != -1 && !adjacency[a][b])
+                    {
+                        adjacency[a][b] = adjacency[b][a] = true;
+                    }
+                }
+
+                RemoveVertex(adjacency, nodes, lowDegreeVertexIndex);
+            }
+            
+            return true;
+        }
+        
+        static int Degree(bool[][] adjacency, int vertexIndex, int size)
+        {
+            var degree = 0;
+            for (var j = 0; j < size; j++) if (adjacency[vertexIndex][j]) degree++;
+            return degree;
+        }
+
+        static int FindLowDegreeVertex(bool[][] adjacency, int size)
+        {
+            for (var i = 0; i < size; i++) 
+                if (Degree(adjacency, i, size) <= 2) return i;
+            return -1;
+        }
+
+        static void RemoveVertex(bool[][] adjacency, IndexedSet<TNode> nodes, int vertexIndex)
+        {
+            var size = nodes.Count;
+            for (var i = vertexIndex; i < size - 1; i++)
+                for (var j = 0; j < size; j++)
+                    adjacency[i][j] = adjacency[i + 1][j];
+
+            for (var j = vertexIndex; j < size - 1; j++)
+                for (var i = 0; i < size - 1; i++)
+                    adjacency[i][j] = adjacency[i][j + 1];
+
+            nodes.RemoveByIndex(vertexIndex);
+        }
+    }
+    
+    // non-oriented graph only
     public static bool CheckPlanarGamma<TNode, TData>(this IGraph<TNode, TData> graph) where TNode : notnull
     {
         if (graph.Size < 5) return true;

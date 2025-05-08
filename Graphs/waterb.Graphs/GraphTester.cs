@@ -190,9 +190,13 @@ public static partial class GraphTester
                 }
                 
                 break;
-            case GraphTestType.PlanarGammaIdentification:
-                var r12 = graph.CheckPlanarGamma();
+            case GraphTestType.PlanarIdentification:
+                var r12 = graph.CheckPlanarNaive();
                 sb.AppendLine($"Graph {(r12 ? "is" : "is not")} planar.");
+                break;
+            case GraphTestType.PlanarGammaIdentification:
+                var r13 = graph.CheckPlanarGamma();
+                sb.AppendLine($"Graph {(r13 ? "is" : "is not")} planar.");
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mapTestType), mapTestType, null);

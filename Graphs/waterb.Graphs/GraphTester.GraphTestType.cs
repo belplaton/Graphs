@@ -16,6 +16,7 @@ public static partial class GraphTester
         FordFulkersonMaxFlow,
         HamiltonianCycleAntColony,
         HamiltonianCycleBnB,
+        PlanarIdentification,
         PlanarGammaIdentification,
     }
 }

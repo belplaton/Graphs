@@ -1,5 +1,6 @@
 
 using System.Text;
+using waterb.Utility;
 
 namespace waterb.Graphs.GraphAlgorithms;
 
@@ -7,15 +8,17 @@ public static partial class GraphAlgorithms
 {
 	public readonly struct ConnectedComponent<TNode> : IEquatable<ConnectedComponent<TNode>>
 	{
-		public List<TNode> Nodes { get; }
+		public IndexedSet<TNode> Nodes { get; }
+		public int Count => Nodes.Count;
+		public TNode this[int index] => Nodes[index];
 
 		public ConnectedComponent()
 		{
-			Nodes = new List<TNode>();	
+			Nodes = [];	
 		}
-		public ConnectedComponent(List<TNode>? nodes = null)
+		public ConnectedComponent(IndexedSet<TNode>? nodes = null)
 		{
-			Nodes = nodes ?? new List<TNode>();
+			Nodes = nodes ?? [];
 		}
 
 		public override string ToString()
