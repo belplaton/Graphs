@@ -1,4 +1,5 @@
-﻿using waterb.Graphs;
+﻿using System.Diagnostics;
+using waterb.Graphs;
 
 internal static class Program
 {
@@ -97,8 +98,9 @@ internal static class Program
 		}
 		catch (Exception ex)
 		{
+			var errorLine = new StackTrace(ex, true).GetFrame(0)!.GetFileLineNumber();
 			Console.WriteLine($"Error during {args[0]} processing:");
-			Console.WriteLine(ex.Message);
+			Console.WriteLine($"Error Line: {errorLine}, Message: {ex.Message}");
 		}
 		
 		Console.WriteLine("Finish. Press any key to leave...");
