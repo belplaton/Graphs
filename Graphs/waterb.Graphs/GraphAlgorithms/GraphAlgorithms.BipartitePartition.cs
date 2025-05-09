@@ -281,44 +281,66 @@ public static partial class GraphAlgorithms
                 adjacency[a][b] = adjacency[b][a] = false;
             }
             
-            Array.Fill(visited, false);
             var segments = new List<Segment>();
             var segmentStack = new Stack<int>();
+            var usedSegmentEdge = new bool[componentSize][];
+            for (var i = 0; i < componentSize; i++) usedSegmentEdge[i] = new bool[componentSize];
             
-            for (var i = 0; i < componentSize; i++)
+            for (var startIndex = 0; startIndex < componentSize; startIndex++)
             {
-                if (visited[i]) continue;
-                var segmentComp = new IndexedSet<int>();
-                var contacts = new IndexedSet<int>();
-                segmentStack.Clear();
-                segmentStack.Push(i);
-                
-                visited[i] = true;
-                while (segmentStack.Count > 0)
+                if (!reverseSimpleCycle.Contains(startIndex)) continue;
+                for (var uIndex = 0; uIndex < componentSize; uIndex++)
                 {
-                    var currentIndex = segmentStack.Pop();
-                    segmentComp.Add(currentIndex);
-                    for (var adjIndex = 0; adjIndex < componentSize; adjIndex++)
+                    if (!adjacency[startIndex][uIndex] ||
+                        usedSegmentEdge[startIndex][uIndex] ||
+                        reverseSimpleCycle.Contains(uIndex)) continue;
+
+                    var segmentComp = new IndexedSet<int> { startIndex };
+                    segmentStack.Clear();
+                    segmentStack.Push(uIndex);
+                    Array.Fill(visited, false);
+                    visited[uIndex] = true;
+                    
+                    var finishIndex = -1;
+                    while (segmentStack.Count > 0 && finishIndex == -1)
                     {
-                        if (!visited[adjIndex] && adjacency[currentIndex][adjIndex])
+                        var vIndex = segmentStack.Pop();
+                        segmentComp.Add(vIndex);
+                        
+                        for (var wIndex = 0; wIndex < componentSize; wIndex++)
                         {
-                            visited[adjIndex] = true;
-                            segmentStack.Push(adjIndex);
+                            if (!adjacency[vIndex][wIndex]) continue;
+                            
+                            if (wIndex != startIndex && reverseSimpleCycle.Contains(wIndex))
+                            {
+                                finishIndex = wIndex;
+                                segmentComp.Add(wIndex);
+                                break;
+                            }
+                            
+                            if (!visited[wIndex] && !reverseSimpleCycle.Contains(wIndex))
+                            {
+                                visited[wIndex] = true;
+                                segmentStack.Push(wIndex);
+                            }
                         }
                     }
-                }
+                    
+                    if (finishIndex == -1) continue;
+                    var contacts = new IndexedSet<int> { startIndex, finishIndex };
+                    segments.Add(new Segment
+                    {
+                        Nodes = segmentComp,
+                        Contacts = contacts
+                    });
 
-                for (var j = 0; j < segmentComp.Count; j++)
-                {
-                    var currentIndex = segmentComp[j];
-                    if (reverseSimpleCycle.Contains(currentIndex)) contacts.Add(currentIndex);
+                    var prevIndex = startIndex;
+                    for (var i = 0; i < segmentComp.Count && prevIndex != finishIndex; i++)
+                    {
+                        usedSegmentEdge[prevIndex][segmentComp[i]] = usedSegmentEdge[segmentComp[i]][prevIndex] = true;
+                        prevIndex = segmentComp[i];
+                    }
                 }
-                
-                if (contacts.Count > 0) segments.Add(new Segment
-                {
-                    Nodes = segmentComp,
-                    Contacts = contacts
-                });
             }
 
             if (segments.Count == 0) return true;
