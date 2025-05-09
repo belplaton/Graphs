@@ -4,6 +4,13 @@ namespace waterb.Graphs.GraphAlgorithms;
 
 public static partial class GraphAlgorithms
 {
+    public static bool TryGetBipartitePartition<TNode, TData>(this IGraph<TNode, TData> graph) where TNode : notnull
+    {
+        HashSet<TNode>? visited = [];
+        Stack<DFSEnumerator<TNode, TData>.DFSNode>? stack = [];
+        return graph.TryGetBipartitePartition(ref visited, ref stack, out _, out _);
+    }
+    
     public static bool TryGetBipartitePartition<TNode, TData>(this IGraph<TNode, TData> graph,
         out List<TNode>? partA, out List<TNode>? partB) where TNode : notnull
     {
@@ -18,8 +25,8 @@ public static partial class GraphAlgorithms
     {
         if (graph.Size == 0)
         {
-            partA = new List<TNode>();
-            partB = new List<TNode>();
+            partA = [];
+            partB = [];
             return true;
         }
         
@@ -49,8 +56,8 @@ public static partial class GraphAlgorithms
             }
         }
 
-        partA = new List<TNode>();
-        partB = new List<TNode>();
+        partA = [];
+        partB = [];
         for (var i = 0; i < graph.Size; i++)
         {
             if (color[i]!.Value)
@@ -219,179 +226,216 @@ public static partial class GraphAlgorithms
         }
     }
     
+    private readonly struct Segment
+    {
+        public IndexedSet<int> Nodes { get; init; }
+        public IndexedSet<int> Contacts { get; init; }
+    }
+    
     // non-oriented graph only
     public static bool CheckPlanarGamma<TNode, TData>(this IGraph<TNode, TData> graph) where TNode : notnull
     {
         if (graph.Size < 5) return true;
-
-        var adjacency = new bool[graph.Size][];
-        for (var i = 0; i < graph.Size; i++) adjacency[i] = new bool[graph.Size];
-        for (var i = 0; i < graph.Size; i++)
+        var components = graph.FindConnectedComponents();
+        if (components == null) return true;
+        for (var componentIndex = 0; componentIndex < components.Count; componentIndex++)
         {
-            for (var j = i + 1; j < graph.Size; j++)
+            var component = components[componentIndex];
+            var adjacency = new bool[component.Count][];
+            for (var i = 0; i < component.Count; i++) adjacency[i] = new bool[graph.Size];
+            for (var i = 0; i < component.Count; i++)
             {
-                adjacency[i][j] = adjacency[j][i] = graph[i][j].HasValue || graph[j][i].HasValue;
+                for (var j = i + 1; j < component.Count; j++)
+                {
+                    adjacency[i][j] = adjacency[j][i] =
+                        graph[component[i]][graph.GetIndex(component[j])!.Value].HasValue ||
+                        graph[component[j]][graph.GetIndex(component[i])!.Value].HasValue;
+                }
             }
+            
+            if (!IsComponentPlanar(adjacency, component.Count)) return false;
         }
 
-        var visited = new bool[graph.Size];
-        var visitedCount = 0;
-        
-        bool changed;
-        do
-        {
-            changed = false;
-            for (var currentIndex = 0; currentIndex < graph.Size; currentIndex++)
-            {
-                if (visited[currentIndex]) continue;
-                
-                var degree = 0;
-                for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
-                {
-                    if (!visited[adjIndex] && adjacency[currentIndex][adjIndex]) degree++;
-                }
-
-                switch (degree)
-                {
-                    case <= 1:
-                    {
-                        for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
-                        {
-                            adjacency[currentIndex][adjIndex] = adjacency[adjIndex][currentIndex] = false;
-                        }
-                    
-                        visited[currentIndex] = true;
-                        visitedCount++;
-                        changed = true;
-                        break;
-                    }
-                    case 2:
-                        int a = -1, b = -1;
-                        for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
-                        {
-                            if (!visited[adjIndex] && adjacency[currentIndex][adjIndex])
-                            {
-                                if (a == -1) a = adjIndex;
-                                else b = adjIndex;
-                            }
-                        }
-                        
-                        if (a != -1 && b != -1)
-                        {
-                            adjacency[a][currentIndex] = adjacency[currentIndex][a] = false;
-                            adjacency[b][currentIndex] = adjacency[currentIndex][b] = false;
-                            adjacency[a][b] = adjacency[b][a] = true;
-                        }
-                        
-                        adjacency[currentIndex][currentIndex] = false;
-                        visited[currentIndex] = true;
-                        visitedCount++;
-                        changed = true;
-                        break;
-                }
-            }
-        } while (changed);
-
-        var remainSize = graph.Size - visitedCount;
-        if (remainSize < 5) return true;
-
-        var comb5 = new int[5];
-        var coreIndices = new int[remainSize];
-        for (int i = 0, j = 0; i < graph.Size; i++) if (!visited[i]) coreIndices[j++] = i;
-        
-        if (DFSK5(0, 0, comb5, coreIndices, adjacency, remainSize)) return false;
-        if (remainSize < 6) return true;
-        
-        var leftComb3 = new int[3];
-        var rightComb3 = new int[3];
-        var rightInvertComb3 = new int[remainSize - 3];
-        if (DFSK33Left(0, 0, leftComb3, rightComb3, rightInvertComb3, coreIndices, adjacency, remainSize)) return false;
-        
         return true;
-        static bool DFSK5(int depth, int currentIndex,
-            int[] comb5, int[] coreIndices, bool[][] adjacency, int remainSize)
+        
+        static bool IsComponentPlanar(bool[][] adjacency, int componentSize)
         {
-            if (depth == 5)
+            if (componentSize <= 2) return true;
+
+            var parent = new int[componentSize];
+            var visited = new bool[componentSize];
+            IndexedSet<int>? reverseSimpleCycle = null;
+
+            parent[0] = -1;
+            if (!FindReverseCycle(0, -1, componentSize, adjacency, parent, visited, ref reverseSimpleCycle) ||
+                reverseSimpleCycle == null || reverseSimpleCycle.Count < 3)
             {
-                for (var i = 0; i < 5; i++)
-                {
-                    for (var j = i + 1; j < 5; j++)
-                    {
-                        if (!adjacency[comb5[i]][comb5[j]]) return false;
-                    }
-                }
-                
                 return true;
             }
             
-            for (var i = currentIndex; i <= remainSize - (5 - depth); i++)
+            for (var i = 0; i < reverseSimpleCycle.Count; i++)
             {
-                comb5[depth] = coreIndices[i];
-                if (DFSK5(depth + 1, i + 1, comb5, coreIndices, adjacency, remainSize)) return true;
+                var a = reverseSimpleCycle[reverseSimpleCycle.Count - i - 1];
+                var b = reverseSimpleCycle[(reverseSimpleCycle.Count - i) % reverseSimpleCycle.Count];
+                adjacency[a][b] = adjacency[b][a] = false;
             }
             
-            return false;
-        }
-        
-        static bool DFSK33Left(int depth, int currentIndex, int[] leftComb3, int[] rightComb3,
-            int[] rightInvertComb3, int[] coreIndices, bool[][] adjacency, int remainSize)
-        {
-            if (depth == 3)
+            Array.Fill(visited, false);
+            var segments = new List<Segment>();
+            var segmentStack = new Stack<int>();
+            
+            for (var i = 0; i < componentSize; i++)
             {
-                var rightInvertCombCount = 0;
-                for (var i = 0; i < remainSize; i++)
-                {
-                    var inLeftComb = false;
-                    for (var j = 0; j < 3; j++) if (coreIndices[i] == leftComb3[j]) { inLeftComb = true; break; }
-                    if (!inLeftComb) rightInvertComb3[rightInvertCombCount++] = coreIndices[i];
-                }
+                if (visited[i]) continue;
+                var segmentComp = new IndexedSet<int>();
+                var contacts = new IndexedSet<int>();
+                segmentStack.Clear();
+                segmentStack.Push(i);
                 
-                if (rightInvertCombCount >= 3)
+                visited[i] = true;
+                while (segmentStack.Count > 0)
                 {
-                    if (ChooseRight(0, 0, rightInvertCombCount, leftComb3, rightComb3,
-                        rightInvertComb3, adjacency)) return true;
-                    static bool ChooseRight(int depth, int currentIndex, int rightInvertCombCount,
-                        int[] leftComb3, int[] rightComb3, int[] rightInvertComb3, bool[][] adjacency)
+                    var currentIndex = segmentStack.Pop();
+                    segmentComp.Add(currentIndex);
+                    for (var adjIndex = 0; adjIndex < componentSize; adjIndex++)
                     {
-                        if (depth == 3) return IsK33(leftComb3, rightComb3, adjacency);
-                        for (var i = currentIndex; i <= rightInvertCombCount - (3 - depth); i++)
+                        if (!visited[adjIndex] && adjacency[currentIndex][adjIndex])
                         {
-                            rightComb3[depth] = rightInvertComb3[i];
-                            if (ChooseRight(depth + 1, i + 1, rightInvertCombCount, leftComb3, rightComb3,
-                                rightInvertComb3, adjacency)) return true;
+                            visited[adjIndex] = true;
+                            segmentStack.Push(adjIndex);
                         }
-                        
-                        return false;
                     }
                 }
+
+                for (var j = 0; j < segmentComp.Count; j++)
+                {
+                    var currentIndex = segmentComp[j];
+                    if (reverseSimpleCycle.Contains(currentIndex)) contacts.Add(currentIndex);
+                }
+                
+                if (contacts.Count > 1) segments.Add(new Segment
+                {
+                    Nodes = segmentComp,
+                    Contacts = contacts
+                });
+            }
+
+            if (segments.Count == 0) return true;
+            var conflict = new List<int>[segments.Count];
+            for (var i = 0; i < segments.Count; i++) conflict[i] = [];
+            for (var i = 0; i < segments.Count; i++)
+            {
+                for (var j = i + 1; j < segments.Count; j++)
+                {
+                    if (IsConflict(segments[i], segments[j], reverseSimpleCycle))
+                    {
+                        conflict[i].Add(j);
+                        conflict[j].Add(i);
+                    }
+                }
+            }
+
+            var color = new int[segments.Count];
+            Array.Fill(color, -1);
+            var queue = new Queue<int>();
+            for (var i = 0; i < segments.Count; i++)
+            {
+                if (color[i] != -1) continue;
+                
+                color[i] = 0;
+                queue.Enqueue(i);
+                while (queue.Count > 0)
+                {
+                    var currentIndex = queue.Dequeue();
+                    for (var j = 0; j < conflict[currentIndex].Count; j++)
+                    {
+                        var adjIndex = conflict[currentIndex][j];
+                        if (color[adjIndex] == -1)
+                        {
+                            color[adjIndex] = 1 - color[currentIndex];
+                            queue.Enqueue(adjIndex);
+                        }
+                        else if (color[adjIndex] == color[currentIndex]) return false;
+                    }
+                }
+            }
+
+            for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++)
+            {
+                var segment = segments[segmentIndex];
+                var subAdj = new bool[segment.Nodes.Count][];
+                for (var i = 0; i < segment.Nodes.Count; i++)
+                {
+                    subAdj[i] = new bool[segment.Nodes.Count];
+                    for (var j = i + 1; j < segment.Nodes.Count; j++)
+                    {
+                        subAdj[i][j] = subAdj[j][i] = adjacency[segment.Nodes[i]][segment.Nodes[j]];
+                    }
+                }
+
+                if (!IsComponentPlanar(subAdj, segment.Nodes.Count)) return false;
+            }
+
+            return true;
+            static bool FindReverseCycle(int currentIndex, int parentIndex, int componentSize,
+                bool[][] adjacency, int[] parent, bool[] visited, ref IndexedSet<int>? reverseSimpleCycle)
+            {
+                if (reverseSimpleCycle != null) return true;
+                visited[currentIndex] = true;
+                for (var adjIndex = 0; adjIndex < componentSize; adjIndex++)
+                {
+                    if (!adjacency[currentIndex][adjIndex]) continue;
+                    if (!visited[adjIndex])
+                    {
+                        parent[adjIndex] = currentIndex;
+                        if (FindReverseCycle(adjIndex, currentIndex, componentSize,
+                            adjacency, parent, visited, ref reverseSimpleCycle)) return true;
+                    }
+                    else if (adjIndex != parentIndex && reverseSimpleCycle == null)
+                    {
+                        var temp = currentIndex;
+                        reverseSimpleCycle = [ adjIndex ];
+                        while (temp != adjIndex)
+                        {
+                            reverseSimpleCycle.Add(temp);
+                            temp = parent[temp];
+                        }
+                        
+                        return true;
+                    }
+                }
+
                 return false;
             }
-            
-            for (var i = currentIndex; i <= remainSize - (3 - depth); i++)
-            {
-                leftComb3[depth] = coreIndices[i];
-                if (DFSK33Left(depth + 1, i + 1, leftComb3, rightComb3, rightInvertComb3, coreIndices, adjacency, remainSize)) 
-                    return true;
-            }
-            
-            return false;
-            static bool IsK33(int[] leftComb3, int[] rightComb3, bool[][] adjacency)
-            {
-                for (var i = 0; i < 3; i++)
-                {
-                    for (var j = 0; j < 3; j++)
-                    {   
-                        if (j > i)
-                        {
-                            if (adjacency[leftComb3[i]][leftComb3[j]] || 
-                                adjacency[rightComb3[i]][rightComb3[j]]) return false;
-                        }
 
-                        if (!adjacency[leftComb3[i]][rightComb3[j]]) return false;
+            static bool IsConflict(Segment segmentA, Segment segmentB, IndexedSet<int> reverseSimpleCycle)
+            {
+                var comp = 0;
+                var compLength = 0;
+                for (var i = 0; i < reverseSimpleCycle.Count && compLength < 4; i++)
+                {
+                    var currentIndex = reverseSimpleCycle[i];
+                    var currentBit = GetBit(comp, compLength);
+                    if (segmentA.Contacts.Contains(currentIndex) && (currentBit != 0 || compLength == 0))
+                    {
+                        comp &= ~(1 << compLength++);
+                    }
+                    else if (segmentB.Contacts.Contains(currentIndex) && (currentBit != 1 || compLength == 0))
+                    {
+                        comp |= 1 << compLength++;
                     }
                 }
-            
-                return true;
+                
+                for (var i = 0; i + 3 < compLength; i++)
+                {
+                    if (GetBit(comp, i) != GetBit(comp, i + 1) &&
+                        GetBit(comp, i) == GetBit(comp, i + 2) &&
+                        GetBit(comp, i) != GetBit(comp, i + 3))
+                        return true;
+
+                }
+                return false;
+                static int GetBit(int value, int shift) => (value >> shift) & 1;
             }
         }
     }
