@@ -156,7 +156,7 @@ public static partial class GraphAlgorithms
 
             var nodes = new IndexedSet<TNode>(component.Nodes);
             var adjacency = new bool[component.Count][];
-            for (var i = 0; i < component.Count; i++) adjacency[i] = new bool[graph.Size];
+            for (var i = 0; i < component.Count; i++) adjacency[i] = new bool[component.Count];
             for (var i = 0; i < component.Count; i++)
             {
                 for (var j = i + 1; j < component.Count; j++)
@@ -242,7 +242,7 @@ public static partial class GraphAlgorithms
         {
             var component = components[componentIndex];
             var adjacency = new bool[component.Count][];
-            for (var i = 0; i < component.Count; i++) adjacency[i] = new bool[graph.Size];
+            for (var i = 0; i < component.Count; i++) adjacency[i] = new bool[component.Count];
             for (var i = 0; i < component.Count; i++)
             {
                 for (var j = i + 1; j < component.Count; j++)
@@ -364,9 +364,9 @@ public static partial class GraphAlgorithms
             {
                 var segment = segments[segmentIndex];
                 var subAdj = new bool[segment.Nodes.Count][];
+                for (var i = 0; i < segment.Nodes.Count; i++) subAdj[i] = new bool[segment.Nodes.Count];
                 for (var i = 0; i < segment.Nodes.Count; i++)
                 {
-                    subAdj[i] = new bool[segment.Nodes.Count];
                     for (var j = i + 1; j < segment.Nodes.Count; j++)
                     {
                         subAdj[i][j] = subAdj[j][i] = adjacency[segment.Nodes[i]][segment.Nodes[j]];
