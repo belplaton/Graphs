@@ -257,7 +257,6 @@ public static partial class GraphAlgorithms
         }
 
         return true;
-        
         static bool IsComponentPlanar(bool[][] adjacency, int componentSize)
         {
             if (componentSize <= 2) return true;
@@ -265,18 +264,20 @@ public static partial class GraphAlgorithms
             var parent = new int[componentSize];
             var visited = new bool[componentSize];
             IndexedSet<int>? reverseSimpleCycle = null;
-
-            parent[0] = -1;
-            if (!FindReverseCycle(0, -1, componentSize, adjacency, parent, visited, ref reverseSimpleCycle) ||
-                reverseSimpleCycle == null || reverseSimpleCycle.Count < 3)
-            {
-                return true;
-            }
             
+            for (var startIndex = 0; startIndex < componentSize && reverseSimpleCycle == null; startIndex++)
+            {
+                Array.Fill(parent, 0);
+                Array.Fill(visited, false);
+                parent[startIndex] = -1;
+                FindReverseCycle(startIndex, -1, componentSize, adjacency, parent, visited, ref reverseSimpleCycle);
+            }
+
+            if (reverseSimpleCycle == null || reverseSimpleCycle.Count < 3) return true;
             for (var i = 0; i < reverseSimpleCycle.Count; i++)
             {
-                var a = reverseSimpleCycle[reverseSimpleCycle.Count - i - 1];
-                var b = reverseSimpleCycle[(reverseSimpleCycle.Count - i) % reverseSimpleCycle.Count];
+                var a = reverseSimpleCycle[i];
+                var b = reverseSimpleCycle[(i + 1) % reverseSimpleCycle.Count];
                 adjacency[a][b] = adjacency[b][a] = false;
             }
             
@@ -313,7 +314,7 @@ public static partial class GraphAlgorithms
                     if (reverseSimpleCycle.Contains(currentIndex)) contacts.Add(currentIndex);
                 }
                 
-                if (contacts.Count > 1) segments.Add(new Segment
+                if (contacts.Count > 0) segments.Add(new Segment
                 {
                     Nodes = segmentComp,
                     Contacts = contacts
@@ -408,34 +409,31 @@ public static partial class GraphAlgorithms
                 return false;
             }
 
-            static bool IsConflict(Segment segmentA, Segment segmentB, IndexedSet<int> reverseSimpleCycle)
+            static bool IsConflict(Segment segmentA, Segment segmentB, IndexedSet<int> cycle)
             {
-                var comp = 0;
-                var compLength = 0;
-                for (var i = 0; i < reverseSimpleCycle.Count && compLength < 4; i++)
+                int a1 = -1 ,a2 = -1, b1 = -1, b2 = -1, pos = 0;
+                for (var i = 0; i < cycle.Count; i++)
                 {
-                    var currentIndex = reverseSimpleCycle[i];
-                    var currentBit = GetBit(comp, compLength);
-                    if (segmentA.Contacts.Contains(currentIndex) && (currentBit != 0 || compLength == 0))
+                    var currentIndex = cycle[i];
+                    if (segmentA.Contacts.Contains(currentIndex))
                     {
-                        comp &= ~(1 << compLength++);
+                        if (a1 == -1) a1 = pos;
+                        else a2 = pos;
                     }
-                    else if (segmentB.Contacts.Contains(currentIndex) && (currentBit != 1 || compLength == 0))
+                    else if (segmentB.Contacts.Contains(currentIndex))
                     {
-                        comp |= 1 << compLength++;
+                        if (b1 == -1) b1 = pos;
+                        else b2 = pos;
                     }
+
+                    pos++;
                 }
                 
-                for (var i = 0; i + 3 < compLength; i++)
-                {
-                    if (GetBit(comp, i) != GetBit(comp, i + 1) &&
-                        GetBit(comp, i) == GetBit(comp, i + 2) &&
-                        GetBit(comp, i) != GetBit(comp, i + 3))
-                        return true;
+                if (a1 > a2) (a1,a2) = (a2,a1);
+                if (b1 > b2) (b1,b2) = (b2,b1);
 
-                }
-                return false;
-                static int GetBit(int value, int shift) => (value >> shift) & 1;
+                var isConflict = (a1 < b1 && b1 < a2 && a2 < b2) || (b1 < a1 && a1 < b2 && b2 < a2);
+                return isConflict;
             }
         }
     }
