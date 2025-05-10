@@ -241,60 +241,113 @@ public static partial class GraphAlgorithms
         for (var componentIndex = 0; componentIndex < components.Count; componentIndex++)
         {
             var component = components[componentIndex];
-            var adjacency = new bool[component.Count][];
-            for (var i = 0; i < component.Count; i++) adjacency[i] = new bool[component.Count];
+            var adjacencySource = new bool[component.Count][];
+            for (var i = 0; i < component.Count; i++) adjacencySource[i] = new bool[component.Count];
             for (var i = 0; i < component.Count; i++)
             {
                 for (var j = i + 1; j < component.Count; j++)
                 {
-                    adjacency[i][j] = adjacency[j][i] =
+                    adjacencySource[i][j] = adjacencySource[j][i] =
                         graph[component[i]][graph.GetIndex(component[j])!.Value].HasValue ||
                         graph[component[j]][graph.GetIndex(component[i])!.Value].HasValue;
                 }
             }
-            
-            if (!IsComponentPlanar(adjacency, component.Count)) return false;
+
+            var cycles = FindCycles(adjacencySource, component.Count);
+            for (var cycleIndex = 0; cycleIndex < cycles.Count; cycleIndex++)
+            {
+                var cycle = cycles[cycleIndex];
+                if (cycle.Count < 3) continue;
+
+                var adjacencyCopy = new bool[component.Count][];
+                for (var i = 0; i < component.Count; i++)
+                {
+                    adjacencyCopy[i] = new bool[component.Count];
+                    Array.Copy(adjacencySource[i], adjacencyCopy[i], component.Count);
+                }
+                
+                if (!IsComponentPlanar(adjacencyCopy, component.Count, cycle)) return false;
+            }
         }
-
+        
         return true;
-        static bool IsComponentPlanar(bool[][] adjacency, int componentSize)
+        static List<IndexedSet<int>> FindCycles(bool[][] adjacency, int componentSize)
         {
-            if (componentSize <= 2) return true;
-
             var parent = new int[componentSize];
             var visited = new bool[componentSize];
-            IndexedSet<int>? reverseSimpleCycle = null;
-            
-            for (var startIndex = 0; startIndex < componentSize && reverseSimpleCycle == null; startIndex++)
-            {
-                Array.Fill(parent, 0);
-                Array.Fill(visited, false);
-                parent[startIndex] = -1;
-                FindReverseCycle(startIndex, -1, componentSize, adjacency, parent, visited, ref reverseSimpleCycle);
-            }
+            var cycles  = new List<IndexedSet<int>>();
 
-            if (reverseSimpleCycle == null || reverseSimpleCycle.Count < 3) return true;
-            for (var i = 0; i < reverseSimpleCycle.Count; i++)
+            Array.Fill(parent, -1);
+            for (var startIndex = 0; startIndex < componentSize; startIndex++)
+                if (!visited[startIndex]) DFSCycles(startIndex, adjacency, componentSize, parent, visited, cycles);
+
+            return cycles;
+            static void DFSCycles(int startIndex, bool[][] adjacency, int componentSize,
+                int[] parent, bool[] visited, List<IndexedSet<int>> cycles)
             {
-                var a = reverseSimpleCycle[i];
-                var b = reverseSimpleCycle[(i + 1) % reverseSimpleCycle.Count];
+                visited[startIndex] = true;
+                for (var adjIndex = 0; adjIndex < componentSize; adjIndex++)
+                {
+                    if (!adjacency[startIndex][adjIndex]) continue;
+                    if (!visited[adjIndex])
+                    {
+                        parent[adjIndex] = startIndex;
+                        DFSCycles(adjIndex, adjacency, componentSize, parent, visited, cycles);
+                    }
+                    else if (adjIndex != parent[startIndex])
+                    {
+                        var cycle = new IndexedSet<int> { adjIndex };
+                        var x = startIndex;
+                        while (x != -1)
+                        {
+                            if (x != adjIndex) cycle.Add(x);
+                            else if (cycle.Count > 2)
+                            {
+                                cycles.Add(cycle);
+                                break;
+                            }
+                            
+                            x = parent[x];
+                        }
+                    }
+                }
+            }
+        }
+        
+        static bool IsComponentPlanar(bool[][] adjacency, int componentSize, IndexedSet<int> simpleCycle)
+        {
+            if (componentSize < 3 || simpleCycle.Count < 3) return true;
+            
+            for (var i = 0; i < simpleCycle.Count; i++)
+            {
+                var a = simpleCycle[i];
+                var b = simpleCycle[(i + 1) % simpleCycle.Count];
                 adjacency[a][b] = adjacency[b][a] = false;
             }
             
+            var visited = new bool[componentSize];
             var segments = new List<Segment>();
             var segmentStack = new Stack<int>();
             var usedSegmentEdge = new bool[componentSize][];
             for (var i = 0; i < componentSize; i++) usedSegmentEdge[i] = new bool[componentSize];
-            
             for (var startIndex = 0; startIndex < componentSize; startIndex++)
             {
-                if (!reverseSimpleCycle.Contains(startIndex)) continue;
+                if (!simpleCycle.Contains(startIndex)) continue;
                 for (var uIndex = 0; uIndex < componentSize; uIndex++)
                 {
-                    if (!adjacency[startIndex][uIndex] ||
-                        usedSegmentEdge[startIndex][uIndex] ||
-                        reverseSimpleCycle.Contains(uIndex)) continue;
-
+                    if (!adjacency[startIndex][uIndex] || usedSegmentEdge[startIndex][uIndex]) continue;
+                    if (simpleCycle.Contains(uIndex))
+                    {
+                        segments.Add(new Segment
+                        {
+                            Nodes    = [startIndex, uIndex],
+                            Contacts = [startIndex, uIndex]
+                        });
+                        
+                        usedSegmentEdge[startIndex][uIndex] = usedSegmentEdge[uIndex][startIndex] = true;
+                        continue;
+                    }
+                    
                     var segmentComp = new IndexedSet<int> { startIndex };
                     segmentStack.Clear();
                     segmentStack.Push(uIndex);
@@ -309,16 +362,16 @@ public static partial class GraphAlgorithms
                         
                         for (var wIndex = 0; wIndex < componentSize; wIndex++)
                         {
-                            if (!adjacency[vIndex][wIndex]) continue;
+                            if (!adjacency[vIndex][wIndex] || usedSegmentEdge[vIndex][wIndex]) continue;
                             
-                            if (wIndex != startIndex && reverseSimpleCycle.Contains(wIndex))
+                            if (wIndex != startIndex && simpleCycle.Contains(wIndex))
                             {
                                 finishIndex = wIndex;
                                 segmentComp.Add(wIndex);
                                 break;
                             }
                             
-                            if (!visited[wIndex] && !reverseSimpleCycle.Contains(wIndex))
+                            if (!visited[wIndex] && !simpleCycle.Contains(wIndex))
                             {
                                 visited[wIndex] = true;
                                 segmentStack.Push(wIndex);
@@ -350,7 +403,7 @@ public static partial class GraphAlgorithms
             {
                 for (var j = i + 1; j < segments.Count; j++)
                 {
-                    if (IsConflict(segments[i], segments[j], reverseSimpleCycle))
+                    if (IsConflict(segments[i], segments[j], simpleCycle))
                     {
                         conflict[i].Add(j);
                         conflict[j].Add(i);
@@ -386,51 +439,34 @@ public static partial class GraphAlgorithms
             for (var segmentIndex = 0; segmentIndex < segments.Count; segmentIndex++)
             {
                 var segment = segments[segmentIndex];
-                var subAdj = new bool[segment.Nodes.Count][];
-                for (var i = 0; i < segment.Nodes.Count; i++) subAdj[i] = new bool[segment.Nodes.Count];
+                var subAdjSrc = new bool[segment.Nodes.Count][];
+                for (var i = 0; i < segment.Nodes.Count; i++) subAdjSrc[i] = new bool[segment.Nodes.Count];
                 for (var i = 0; i < segment.Nodes.Count; i++)
                 {
                     for (var j = i + 1; j < segment.Nodes.Count; j++)
                     {
-                        subAdj[i][j] = subAdj[j][i] = adjacency[segment.Nodes[i]][segment.Nodes[j]];
+                        subAdjSrc[i][j] = subAdjSrc[j][i] = adjacency[segment.Nodes[i]][segment.Nodes[j]];
                     }
                 }
+                
+                var cycles = FindCycles(subAdjSrc, segment.Nodes.Count);
+                for (var cycleIndex = 0; cycleIndex < cycles.Count; cycleIndex++)
+                {
+                    var cycle = cycles[cycleIndex];
+                    if (cycle.Count < 3) continue;
 
-                if (!IsComponentPlanar(subAdj, segment.Nodes.Count)) return false;
+                    var subAjdCopy = new bool[segment.Nodes.Count][];
+                    for (var i = 0; i < segment.Nodes.Count; i++)
+                    {
+                        subAjdCopy[i] = new bool[segment.Nodes.Count];
+                        Array.Copy(subAdjSrc[i], subAjdCopy[i], segment.Nodes.Count);
+                    }
+
+                    if (!IsComponentPlanar(subAjdCopy, segment.Nodes.Count, cycle)) return false;
+                }
             }
 
             return true;
-            static bool FindReverseCycle(int currentIndex, int parentIndex, int componentSize,
-                bool[][] adjacency, int[] parent, bool[] visited, ref IndexedSet<int>? reverseSimpleCycle)
-            {
-                if (reverseSimpleCycle != null) return true;
-                visited[currentIndex] = true;
-                for (var adjIndex = 0; adjIndex < componentSize; adjIndex++)
-                {
-                    if (!adjacency[currentIndex][adjIndex]) continue;
-                    if (!visited[adjIndex])
-                    {
-                        parent[adjIndex] = currentIndex;
-                        if (FindReverseCycle(adjIndex, currentIndex, componentSize,
-                            adjacency, parent, visited, ref reverseSimpleCycle)) return true;
-                    }
-                    else if (adjIndex != parentIndex && reverseSimpleCycle == null)
-                    {
-                        var temp = currentIndex;
-                        reverseSimpleCycle = [ adjIndex ];
-                        while (temp != adjIndex)
-                        {
-                            reverseSimpleCycle.Add(temp);
-                            temp = parent[temp];
-                        }
-                        
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
             static bool IsConflict(Segment segmentA, Segment segmentB, IndexedSet<int> cycle)
             {
                 int a1 = -1 ,a2 = -1, b1 = -1, b2 = -1, pos = 0;
