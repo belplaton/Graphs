@@ -228,7 +228,7 @@ public static partial class GraphAlgorithms
     
     private readonly struct Segment
     {
-        public IndexedSet<int> Nodes { get; init; }
+        public List<int> Nodes { get; init; }
         public IndexedSet<int> Contacts { get; init; }
     }
     
@@ -271,11 +271,11 @@ public static partial class GraphAlgorithms
         }
         
         return true;
-        static List<IndexedSet<int>> FindCycles(bool[][] adjacency, int componentSize)
+        static List<List<int>> FindCycles(bool[][] adjacency, int componentSize)
         {
             var parent = new int[componentSize];
             var visited = new bool[componentSize];
-            var cycles  = new List<IndexedSet<int>>();
+            var cycles  = new List<List<int>>();
 
             Array.Fill(parent, -1);
             for (var startIndex = 0; startIndex < componentSize; startIndex++)
@@ -283,7 +283,7 @@ public static partial class GraphAlgorithms
 
             return cycles;
             static void DFSCycles(int startIndex, bool[][] adjacency, int componentSize,
-                int[] parent, bool[] visited, List<IndexedSet<int>> cycles)
+                int[] parent, bool[] visited, List<List<int>> cycles)
             {
                 visited[startIndex] = true;
                 for (var adjIndex = 0; adjIndex < componentSize; adjIndex++)
@@ -296,7 +296,7 @@ public static partial class GraphAlgorithms
                     }
                     else if (adjIndex != parent[startIndex])
                     {
-                        var cycle = new IndexedSet<int> { adjIndex };
+                        var cycle = new List<int> { adjIndex };
                         var x = startIndex;
                         while (x != -1)
                         {
@@ -314,7 +314,7 @@ public static partial class GraphAlgorithms
             }
         }
         
-        static bool IsComponentPlanar(bool[][] adjacency, int componentSize, IndexedSet<int> simpleCycle)
+        static bool IsComponentPlanar(bool[][] adjacency, int componentSize, IReadOnlyList<int> simpleCycle)
         {
             if (componentSize < 3 || simpleCycle.Count < 3) return true;
             
@@ -325,18 +325,20 @@ public static partial class GraphAlgorithms
                 adjacency[a][b] = adjacency[b][a] = false;
             }
             
+            var onCycle  = new HashSet<int>(simpleCycle);
             var visited = new bool[componentSize];
             var segments = new List<Segment>();
             var segmentStack = new Stack<int>();
+            var parent   = new int[componentSize];
             var usedSegmentEdge = new bool[componentSize][];
             for (var i = 0; i < componentSize; i++) usedSegmentEdge[i] = new bool[componentSize];
             for (var startIndex = 0; startIndex < componentSize; startIndex++)
             {
-                if (!simpleCycle.Contains(startIndex)) continue;
+                if (!onCycle.Contains(startIndex)) continue;
                 for (var uIndex = 0; uIndex < componentSize; uIndex++)
                 {
                     if (!adjacency[startIndex][uIndex] || usedSegmentEdge[startIndex][uIndex]) continue;
-                    if (simpleCycle.Contains(uIndex))
+                    if (onCycle.Contains(uIndex))
                     {
                         segments.Add(new Segment
                         {
@@ -348,9 +350,9 @@ public static partial class GraphAlgorithms
                         continue;
                     }
                     
-                    var segmentComp = new IndexedSet<int> { startIndex };
                     segmentStack.Clear();
                     segmentStack.Push(uIndex);
+                    Array.Fill(parent,-1);
                     Array.Fill(visited, false);
                     visited[uIndex] = true;
                     
@@ -358,40 +360,46 @@ public static partial class GraphAlgorithms
                     while (segmentStack.Count > 0 && finishIndex == -1)
                     {
                         var vIndex = segmentStack.Pop();
-                        segmentComp.Add(vIndex);
-                        
                         for (var wIndex = 0; wIndex < componentSize; wIndex++)
                         {
-                            if (!adjacency[vIndex][wIndex] || usedSegmentEdge[vIndex][wIndex]) continue;
+                            if (!adjacency[vIndex][wIndex] ||
+                                usedSegmentEdge[vIndex][wIndex] ||
+                                visited[wIndex]) continue;
+
+                            parent[wIndex] = vIndex;
+                            visited[wIndex] = true;
                             
-                            if (wIndex != startIndex && simpleCycle.Contains(wIndex))
+                            if (onCycle.Contains(wIndex))
                             {
                                 finishIndex = wIndex;
-                                segmentComp.Add(wIndex);
                                 break;
                             }
                             
-                            if (!visited[wIndex] && !simpleCycle.Contains(wIndex))
-                            {
-                                visited[wIndex] = true;
-                                segmentStack.Push(wIndex);
-                            }
+                            segmentStack.Push(wIndex);
                         }
                     }
                     
                     if (finishIndex == -1) continue;
+                    var nodes = new List<int> { startIndex };
+                    for (var x = parent[finishIndex]; x != -1; x = parent[x])
+                    {
+                        nodes.Add(x);
+                        if (x == startIndex) break;
+                    }
+                    
+                    nodes.Add(finishIndex);
                     var contacts = new IndexedSet<int> { startIndex, finishIndex };
                     segments.Add(new Segment
                     {
-                        Nodes = segmentComp,
+                        Nodes = nodes,
                         Contacts = contacts
                     });
 
                     var prevIndex = startIndex;
-                    for (var i = 0; i < segmentComp.Count && prevIndex != finishIndex; i++)
+                    for (var i = 0; i < nodes.Count; i++)
                     {
-                        usedSegmentEdge[prevIndex][segmentComp[i]] = usedSegmentEdge[segmentComp[i]][prevIndex] = true;
-                        prevIndex = segmentComp[i];
+                        usedSegmentEdge[prevIndex][nodes[i]] = usedSegmentEdge[nodes[i]][prevIndex] = true;
+                        prevIndex = nodes[i];
                     }
                 }
             }
@@ -467,9 +475,9 @@ public static partial class GraphAlgorithms
             }
 
             return true;
-            static bool IsConflict(Segment segmentA, Segment segmentB, IndexedSet<int> cycle)
+            static bool IsConflict(Segment segmentA, Segment segmentB, IReadOnlyList<int> cycle)
             {
-                int a1 = -1 ,a2 = -1, b1 = -1, b2 = -1, pos = 0;
+                int a1 = -1, a2 = -1, b1 = -1, b2 = -1, pos = 0;
                 for (var i = 0; i < cycle.Count; i++)
                 {
                     var currentIndex = cycle[i];
@@ -487,9 +495,10 @@ public static partial class GraphAlgorithms
                     pos++;
                 }
                 
-                if (a1 > a2) (a1,a2) = (a2,a1);
-                if (b1 > b2) (b1,b2) = (b2,b1);
+                if (a1 > a2) (a1, a2) = (a2, a1);
+                if (b1 > b2) (b1, b2) = (b2, b1);
 
+                if (a1 == -1 || b1 == -1) return false;
                 var isConflict = (a1 < b1 && b1 < a2 && a2 < b2) || (b1 < a1 && a1 < b2 && b2 < a2);
                 return isConflict;
             }
