@@ -201,7 +201,7 @@ public static partial class GraphTester
             default:
                 throw new ArgumentOutOfRangeException(nameof(mapTestType), mapTestType, null);
         }
-
+        
         return sb.ToString();
     }
     
