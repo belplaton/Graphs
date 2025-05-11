@@ -601,4 +601,83 @@ public static partial class GraphAlgorithms
             }
         }
     }
+    
+    public readonly struct PartitionByDistanceData<TNode> where TNode : notnull
+    {
+        public double FromDistance { get; init; }
+        public double ToDistance { get; init; }
+
+        public List<TNode> Nodes { get; init; }
+        public PartitionByDistanceData(double fromDistance, double toDistance)
+        {
+            FromDistance = fromDistance;
+            ToDistance = toDistance;
+            Nodes = [];
+        }
+    }
+    
+    public static List<PartitionByDistanceData<TNode>> PartitionByDistance<TNode, TData>(
+        this IGraph<TNode,TData> graph, TNode start, int regionsCount) where TNode : notnull
+    {
+        var startIndex = graph.GetIndex(start) ??
+            throw new ArgumentOutOfRangeException($"Node {start} is not found in graph!");
+        if (regionsCount < 1) throw new ArgumentException("Can`t divide regions less than by 1 count.");
+        
+        var dist = new Dictionary<int, double>();
+        var queue = new PriorityQueue<int, double>();
+        var maxDist = double.NegativeInfinity;
+        var minDist = double.PositiveInfinity;
+        
+        dist[startIndex] = 0;
+        queue.Enqueue(startIndex, 0.0);
+        while (queue.Count > 0)
+        {
+            var currentIndex = queue.Dequeue();
+            var currentDistance = dist[currentIndex];
+            
+            for (var adjIndex = 0; adjIndex < graph.Size; adjIndex++)
+            {
+                if (!graph[currentIndex][adjIndex].HasValue || currentIndex == adjIndex) continue;
+                
+                var currDist = currentDistance + graph[currentIndex][adjIndex]!.Value;
+                if (!dist.TryGetValue(adjIndex, out var adjDistance) || currDist < adjDistance)
+                {
+                    maxDist = Math.Max(currDist, maxDist);
+                    minDist = Math.Min(currDist, minDist);
+                    dist[adjIndex] = currDist;
+                    queue.Enqueue(adjIndex, currDist);
+                }
+            }
+        }
+
+        var dataList = new List<PartitionByDistanceData<TNode>>();
+        for (var i = 0; i < regionsCount; i++)
+        {
+            var prevBorder = (maxDist - minDist) * i / regionsCount;
+            var currentBorder = (maxDist - minDist) * (i + 1) / regionsCount;
+            var data = new PartitionByDistanceData<TNode>(prevBorder, currentBorder);
+            dataList.Add(data);
+        }
+
+        for (var i = 0; i < graph.Size; i++)
+        {
+            if (!dist.TryGetValue(i, out var distance))
+            {
+                dataList[^1].Nodes.Add(graph.Nodes[i]);
+            }
+            else
+            {
+                for (var j = 0; j < regionsCount; j++)
+                {
+                    if (dataList[j].FromDistance <= distance && dataList[j].ToDistance >= distance)
+                    {
+                        dataList[j].Nodes.Add(graph.Nodes[i]);
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return dataList;
+    }
 }

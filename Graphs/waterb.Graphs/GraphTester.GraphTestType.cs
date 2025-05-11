@@ -18,5 +18,6 @@ public static partial class GraphTester
         HamiltonianCycleBnB,
         PlanarIdentification,
         PlanarGammaIdentification,
+        PartitionFourByDistance
     }
 }

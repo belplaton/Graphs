@@ -198,6 +198,24 @@ public static partial class GraphTester
                 var r13 = graph.CheckPlanarGamma();
                 sb.AppendLine($"Graph {(r13 ? "is" : "is not")} planar.");
                 break;
+            case GraphTestType.PartitionFourByDistance:
+                Console.WriteLine("Enter start node name (integer): ");
+                var t14Input1 = Console.ReadLine();
+                if (!int.TryParse(t14Input1, out var t14StartNode))
+                {
+                    Console.WriteLine("Error with parsing start node");
+                    return "No results.";
+                }
+                
+                var r14 = graph.PartitionByDistance(t14StartNode, 4);
+                sb.AppendLine($"Distance from {t14StartNode} vertex:");
+                for (var i = 0; i < r14.Count; i++)
+                {
+                    sb.AppendLine($"{r14[i].FromDistance} <= d < {r14[i].ToDistance}");
+                    sb.AppendLine($"\t[{string.Join(", ", r14[i].Nodes)}]");
+                }
+
+                break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(mapTestType), mapTestType, null);
         }
