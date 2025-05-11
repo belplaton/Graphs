@@ -137,7 +137,7 @@ public static partial class GraphAlgorithms
         return false;
     }
     
-    // non-oriented graph only
+    // non-oriented graph only (is not work correct, use Gamma check instead)
     public static bool CheckPlanarNaive<TNode, TData>(this IGraph<TNode, TData> graph) where TNode : notnull
     {
         if (graph.Size < 5) return true;
@@ -199,19 +199,11 @@ public static partial class GraphAlgorithms
             for (var i = 0; i < nodes.Count; i++) coreIndices[i] = i;
             if (DFSK5(0, 0, comb5, coreIndices, adjacency, nodes.Count)) return false;
             
-            switch (nodes.Count)
-            {
-                case < 6:
-                    return true;
-                case > 6:
-                    return false;
-            }
-
+            if (nodes.Count < 6) return true;
             var leftComb3 = new int[3];
             var rightComb3 = new int[3];
             var rightInvertComb3 = new int[nodes.Count - 3];
-            if (DFSK33Left(0, 0, leftComb3, rightComb3, rightInvertComb3, coreIndices, adjacency, nodes.Count))
-                return false;
+            if (DFSK33Left(0, 0, leftComb3, rightComb3, rightInvertComb3, coreIndices, adjacency, nodes.Count)) return false;
             
             return true;
         }
