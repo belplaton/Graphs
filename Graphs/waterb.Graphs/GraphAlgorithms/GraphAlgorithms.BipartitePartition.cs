@@ -149,12 +149,11 @@ public static partial class GraphAlgorithms
         }
 
         return true;
-
         static bool IsComponentPlanar(IGraph<TNode, TData> graph, ConnectedComponent<TNode> component)
         {
             if (component.Count <= 2) return true;
 
-            var nodes = new IndexedSet<TNode>(component.Nodes);
+            var nodes = new List<int>(component.Nodes.Select(x => graph.GetIndex(x)!.Value));
             var adjacency = new bool[component.Count][];
             for (var i = 0; i < component.Count; i++) adjacency[i] = new bool[component.Count];
             for (var i = 0; i < component.Count; i++)
@@ -166,11 +165,11 @@ public static partial class GraphAlgorithms
                         graph[component[j]][graph.GetIndex(component[i])!.Value].HasValue;
                 }
             }
-
+            
             while (nodes.Count > 3)
             {
                 var lowDegreeVertexIndex = FindLowDegreeVertex(adjacency, nodes.Count);
-                if (lowDegreeVertexIndex == -1) return false;
+                if (lowDegreeVertexIndex == -1) break;
 
                 var degree = Degree(adjacency, lowDegreeVertexIndex, nodes.Count);
                 if (degree > 1)
@@ -193,6 +192,26 @@ public static partial class GraphAlgorithms
 
                 RemoveVertex(adjacency, nodes, lowDegreeVertexIndex);
             }
+
+            if (nodes.Count < 5) return true;
+            var comb5 = new int[5];
+            var coreIndices = new int[nodes.Count];
+            for (var i = 0; i < nodes.Count; i++) coreIndices[i] = i;
+            if (DFSK5(0, 0, comb5, coreIndices, adjacency, nodes.Count)) return false;
+            
+            switch (nodes.Count)
+            {
+                case < 6:
+                    return true;
+                case > 6:
+                    return false;
+            }
+
+            var leftComb3 = new int[3];
+            var rightComb3 = new int[3];
+            var rightInvertComb3 = new int[nodes.Count - 3];
+            if (DFSK33Left(0, 0, leftComb3, rightComb3, rightInvertComb3, coreIndices, adjacency, nodes.Count))
+                return false;
             
             return true;
         }
@@ -206,12 +225,11 @@ public static partial class GraphAlgorithms
 
         static int FindLowDegreeVertex(bool[][] adjacency, int size)
         {
-            for (var i = 0; i < size; i++) 
-                if (Degree(adjacency, i, size) <= 2) return i;
+            for (var i = 0; i < size; i++) if (Degree(adjacency, i, size) <= 2) return i;
             return -1;
         }
 
-        static void RemoveVertex(bool[][] adjacency, IndexedSet<TNode> nodes, int vertexIndex)
+        static void RemoveVertex(bool[][] adjacency, List<int> nodes, int vertexIndex)
         {
             var size = nodes.Count;
             for (var i = vertexIndex; i < size - 1; i++)
@@ -222,7 +240,94 @@ public static partial class GraphAlgorithms
                 for (var i = 0; i < size - 1; i++)
                     adjacency[i][j] = adjacency[i][j + 1];
 
-            nodes.RemoveByIndex(vertexIndex);
+            nodes.RemoveAt(vertexIndex);
+        }
+        
+        static bool DFSK5(int depth, int currentIndex,
+            int[] comb5, int[] coreIndices, bool[][] adjacency, int remainSize)
+        {
+            if (depth == 5)
+            {
+                for (var i = 0; i < 5; i++)
+                {
+                    for (var j = i + 1; j < 5; j++)
+                    {
+                        if (!adjacency[comb5[i]][comb5[j]]) return false;
+                    }
+                }
+                
+                return true;
+            }
+            
+            for (var i = currentIndex; i <= remainSize - (5 - depth); i++)
+            {
+                comb5[depth] = coreIndices[i];
+                if (DFSK5(depth + 1, i + 1, comb5, coreIndices, adjacency, remainSize)) return true;
+            }
+            
+            return false;
+        }
+        
+        static bool DFSK33Left(int depth, int currentIndex, int[] leftComb3, int[] rightComb3,
+            int[] rightInvertComb3, int[] coreIndices, bool[][] adjacency, int remainSize)
+        {
+            if (depth == 3)
+            {
+                var rightInvertCombCount = 0;
+                for (var i = 0; i < remainSize; i++)
+                {
+                    var inLeftComb = false;
+                    for (var j = 0; j < 3; j++) if (coreIndices[i] == leftComb3[j]) { inLeftComb = true; break; }
+                    if (!inLeftComb) rightInvertComb3[rightInvertCombCount++] = coreIndices[i];
+                }
+                
+                if (rightInvertCombCount >= 3)
+                {
+                    if (ChooseRight(0, 0, rightInvertCombCount, leftComb3, rightComb3,
+                        rightInvertComb3, adjacency)) return true;
+                    static bool ChooseRight(int depth, int currentIndex, int rightInvertCombCount,
+                        int[] leftComb3, int[] rightComb3, int[] rightInvertComb3, bool[][] adjacency)
+                    {
+                        if (depth == 3) return IsK33(leftComb3, rightComb3, adjacency);
+                        for (var i = currentIndex; i <= rightInvertCombCount - (3 - depth); i++)
+                        {
+                            rightComb3[depth] = rightInvertComb3[i];
+                            if (ChooseRight(depth + 1, i + 1, rightInvertCombCount, leftComb3, rightComb3,
+                                rightInvertComb3, adjacency)) return true;
+                        }
+                        
+                        return false;
+                    }
+                }
+                return false;
+            }
+            
+            for (var i = currentIndex; i <= remainSize - (3 - depth); i++)
+            {
+                leftComb3[depth] = coreIndices[i];
+                if (DFSK33Left(depth + 1, i + 1, leftComb3, rightComb3, rightInvertComb3, coreIndices, adjacency, remainSize)) 
+                    return true;
+            }
+            
+            return false;
+            static bool IsK33(int[] leftComb3, int[] rightComb3, bool[][] adjacency)
+            {
+                for (var i = 0; i < 3; i++)
+                {
+                    for (var j = 0; j < 3; j++)
+                    {   
+                        if (j > i)
+                        {
+                            if (adjacency[leftComb3[i]][leftComb3[j]] || 
+                                adjacency[rightComb3[i]][rightComb3[j]]) return false;
+                        }
+
+                        if (!adjacency[leftComb3[i]][rightComb3[j]]) return false;
+                    }
+                }
+            
+                return true;
+            }
         }
     }
     
