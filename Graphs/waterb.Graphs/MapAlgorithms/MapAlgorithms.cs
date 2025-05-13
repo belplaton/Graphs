@@ -70,12 +70,12 @@ public static partial class MapAlgorithms
                 var neighbour = neighbours[i];
                 if (graphMap.TryGetDistance(current, neighbour, out var distance))
                 {
-	                var tentativeGScore = gScore[current] + distance;
-	                if (tentativeGScore < gScore.GetValueOrDefault(neighbour, double.PositiveInfinity) || !closedSet.Contains(neighbour))
+	                var alt = gScore[current] + distance;
+	                if (alt < gScore.GetValueOrDefault(neighbour, double.PositiveInfinity) || !closedSet.Contains(neighbour))
 	                {
 		                prev[neighbour] = current;
-		                gScore[neighbour] = tentativeGScore;
-		                fScore[neighbour] = tentativeGScore + GraphMap.GetHeuristicsDistance(neighbour, to, metric);
+		                gScore[neighbour] = alt;
+		                fScore[neighbour] = alt + GraphMap.GetHeuristicsDistance(neighbour, to, metric);
 		                if (!closedSet.Contains(neighbour)) openSet.Enqueue(neighbour, fScore[neighbour]);
 	                }
                 }

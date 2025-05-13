@@ -141,22 +141,19 @@ public static partial class GraphAlgorithms
 			Array.Fill(cheapestEdges, null);
 			Parallel.For(0, graph.Size, i =>
 			{
-				var nodeRoot = dsu.Find(i);
+				var nodeRoot = dsu.FindReadOnly(i);
 				for (var j = 0; j < graph.Size; j++)
 				{
 					if (graph[i][j].HasValue && i != j)
 					{
-						var neighborRoot = dsu.Find(j);
+						var neighborRoot = dsu.FindReadOnly(j);
 						if (nodeRoot == neighborRoot) continue;
 						
 						var currentEdgeWeight = graph[i][j]!.Value;
-						lock (cheapestEdges)
+						if (cheapestEdges[nodeRoot] == null ||
+						    cheapestEdges[nodeRoot]!.Value.weight > currentEdgeWeight)
 						{
-							if (cheapestEdges[nodeRoot] == null ||
-							    cheapestEdges[nodeRoot]!.Value.weight > currentEdgeWeight)
-							{
-								cheapestEdges[nodeRoot] = new IndexedRibData(i, j, currentEdgeWeight);
-							}
+							cheapestEdges[nodeRoot] = new IndexedRibData(i, j, currentEdgeWeight);
 						}
 					}
 				}

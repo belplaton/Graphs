@@ -56,14 +56,13 @@ public static partial class GraphAlgorithms
         for (var iter = 0; iter < settings.Value.MaxIterations; iter++)
         {
 	        var bag = new ConcurrentBag<(int[] tour, double len)>();
-	        Parallel.For(0, antCount, ant =>
+	        Parallel.For(0, antCount, current =>
 	        {
 		        var random = randLocal.Value!;
 		        var visited = new bool[graph.Size];
 		        var tour = new int[graph.Size + 1];
 		        var len = 0.0;
-
-		        var current = random.Next(graph.Size);
+		        
 		        visited[current] = true;
 		        tour[0] = current;
 		        

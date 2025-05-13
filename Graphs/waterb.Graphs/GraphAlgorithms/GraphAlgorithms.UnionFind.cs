@@ -23,7 +23,16 @@ public static partial class GraphAlgorithms
 		{
 			return _parent[x] == x ? x : _parent[x] = Find(_parent[x]);
 		}
-		
+
+		public int FindReadOnly(int x)
+		{
+			while (true)
+			{
+				if (_parent[x] == x) return x;
+				x = _parent[x];
+			}
+		}
+
 		public bool Union(int x, int y)
 		{
 			x = Find(x);
