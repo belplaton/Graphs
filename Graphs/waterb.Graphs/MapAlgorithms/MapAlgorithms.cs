@@ -10,7 +10,7 @@ public static partial class MapAlgorithms
 		dist[from] = 0;
 		var openSet = new PriorityQueue<(int x, int y), double>();
 		openSet.Enqueue(from, 0.0);
-		while (openSet.TryDequeue(out var current, out var weight) && !current.Equals(to))
+		while (openSet.TryDequeue(out var current, out _) && !current.Equals(to))
 		{
 			var neighbours = graphMap.GetNeighbors(current.x, current.y);
 			for (var i = 0; i < neighbours.Count; i++)
@@ -18,7 +18,7 @@ public static partial class MapAlgorithms
 				var neighbour = neighbours[i];
 				if (graphMap.TryGetDistance(current, neighbour, out var distance))
 				{
-					var alt = dist[current] + distance;
+					var alt = dist[current] + distance + 1;
 					if (alt < dist.GetValueOrDefault(neighbour, double.PositiveInfinity))
 					{
 						dist[neighbour] = alt;
@@ -35,6 +35,7 @@ public static partial class MapAlgorithms
 		}
 		
 		var path = new List<(int, int)>();
+		var length = dist[to];
 		var node = to;
 		path.Add(node);
 		while (!node.Equals(from))
@@ -44,7 +45,7 @@ public static partial class MapAlgorithms
 		}
 		
 		path.Reverse();
-		return (path, dist[to] + path.Count - 1);
+		return (path, length);
 	}
 	
 	public static (List<(int x, int y)> path, double length)? FindPathAStar(this GraphMap graphMap,
@@ -57,24 +58,39 @@ public static partial class MapAlgorithms
         gScore[from] = 0.0;
         fScore[from] = GraphMap.GetHeuristicsDistance(from, to, metric);
         
-        var openSet = new PriorityQueue<(int x, int y), double>();
-        openSet.Enqueue(from, fScore[from]);
+        var openSet = new HashSet<(int x, int y)>();
+        var openQueue = new PriorityQueue<(int x, int y), double>();
+        var closedSet = new HashSet<(int x, int y)>();
 
-        while (openSet.TryDequeue(out var current, out _) && !current.Equals(to))
+        openSet.Add(from);
+        openQueue.Enqueue(from, fScore[from]);
+
+        while (openQueue.TryDequeue(out var current, out _) && !current.Equals(to))
         {
+	        openSet.Remove(current);
+	        closedSet.Add(current);
             var neighbours = graphMap.GetNeighbors(current.x, current.y);
             for (var i = 0; i < neighbours.Count; i++)
             {
                 var neighbour = neighbours[i];
-                if (graphMap.TryGetDistance(current, neighbour, out var distance))
+                if (!closedSet.Contains(neighbour) && graphMap.TryGetDistance(current, neighbour, out var distance))
                 {
-	                var alt = gScore[current] + distance;
-	                if (alt < gScore.GetValueOrDefault(neighbour, double.PositiveInfinity))
+	                var alt = gScore[current] + distance + 1;
+	                var neighbourGScore = gScore.GetValueOrDefault(neighbour, double.PositiveInfinity);
+	                if (alt < neighbourGScore)
 	                {
 		                prev[neighbour] = current;
 		                gScore[neighbour] = alt;
 		                fScore[neighbour] = alt + GraphMap.GetHeuristicsDistance(neighbour, to, metric);
-		                openSet.Enqueue(neighbour, fScore[neighbour]); 
+		                if (openSet.Add(neighbour))
+		                {
+			                openQueue.Enqueue(neighbour, fScore[neighbour]);
+		                }
+		                else
+		                {
+			                openQueue.Remove(neighbour, out _, out var prevScore);
+			                openQueue.Enqueue(neighbour, Math.Min(prevScore, fScore[neighbour]));
+		                }
 	                }
                 }
             }
@@ -86,6 +102,7 @@ public static partial class MapAlgorithms
         }
         
         var path = new List<(int, int)>();
+        var length = gScore[to];
         var node = to;
         path.Add(node);
         while (!node.Equals(from))
@@ -93,7 +110,8 @@ public static partial class MapAlgorithms
             node = prev[node];
             path.Add(node);
         }
-        
-        return (path, gScore[to] + path.Count - 1);
+
+        path.Reverse();
+        return (path, length);
     }
 }

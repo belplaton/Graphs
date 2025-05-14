@@ -256,7 +256,10 @@ public static partial class GraphTester
                     var r1 = map.FindPathDijkstra(from1, to1);
                     if (r1 != null)
                     {
-                        sb.AppendLine(map.PrepareMapInfoPath(r1.Value.path, r1.Value.length, true));
+                        sb.AppendLine($"{r1.Value.length} - length of path between " +
+                            $"({from1.x}, {from1.y}) and ({to1.x}, {to1.y}).");
+                        sb.AppendLine($"Path:\n[{string.Join(", ", r1.Value.path.Select(pair => $"({pair.x}, {pair.y})"))}]");
+                        //sb.AppendLine(map.PrepareMapInfoPath(r1.Value.path, r1.Value.length, true));
                     }
                 
                     break;
@@ -287,9 +290,11 @@ public static partial class GraphTester
                     var r2 = map.FindPathAStar(from2, to2, metric);
                     if (r2 != null)
                     {
+                        sb.AppendLine($"{r2.Value.length} - length of path between " +
+                            $"({from2.x}, {from2.y}) and ({to2.x}, {to2.y}).");
                         sb.AppendLine($"Metrics: {metric}.");
-                        sb.AppendLine(map.PrepareMapInfoPath(r2.Value.path, r2.Value.length, true));
-                        
+                        sb.AppendLine($"Path:\n[{string.Join(", ", r2.Value.path.Select(pair => $"({pair.x}, {pair.y})"))}]");
+                        //sb.AppendLine(map.PrepareMapInfoPath(r2.Value.path, r2.Value.length, true));
                     }
                     
                     break;
