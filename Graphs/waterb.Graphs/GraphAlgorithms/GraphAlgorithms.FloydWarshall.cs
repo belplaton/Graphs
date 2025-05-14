@@ -39,7 +39,7 @@ public static partial class GraphAlgorithms
             double maxDistance = 0;
             for (var j = 0; j < graph.Size; j++)
             {
-                maxDistance = dist[i][j] > maxDistance && dist[i][j] < double.PositiveInfinity
+                maxDistance = dist[i][j] > maxDistance
                     ? dist[i][j]!.Value : maxDistance;
             }
             
@@ -114,8 +114,7 @@ public static partial class GraphAlgorithms
                     currentData.nodesDegrees[graph.Nodes[nodeIndex]] = 
                         currentData.nodesDegrees.GetValueOrDefault(graph.Nodes[nodeIndex], 0) +
                         (graph[nodeIndex][otherIndex].HasValue && nodeIndex != otherIndex ? 1 : 0);
-                    maxDistance = fwDataPair.Value.dist[nodeIndex][otherIndex] > maxDistance && 
-                        fwDataPair.Value.dist[nodeIndex][otherIndex] < double.PositiveInfinity
+                    maxDistance = fwDataPair.Value.dist[nodeIndex][otherIndex] > maxDistance
                         ? fwDataPair.Value.dist[nodeIndex][otherIndex]!.Value : maxDistance;
                 }
 
