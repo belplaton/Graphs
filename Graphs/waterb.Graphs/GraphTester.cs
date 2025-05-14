@@ -148,26 +148,11 @@ public static partial class GraphTester
                 
                 break;
             case GraphTestType.FordFulkersonMaxFlow:
-                Console.WriteLine("Enter flow node name (integer): ");
-                var t9Input1 = Console.ReadLine();
-                if (!int.TryParse(t9Input1, out var t9FlowNode))
-                {
-                    Console.WriteLine("Error with parsing start node");
-                    return "No results.";
-                }
-                
-                Console.WriteLine("Enter sink node name (integer): ");
-                var t9Input2 = Console.ReadLine();
-                if (!int.TryParse(t9Input2, out var t9SinkNode))
-                {
-                    Console.WriteLine("Error with parsing start node");
-                    return "No results.";
-                }
-                
-                var r9 = graph.FindMaxFlowFordFulkerson(t9FlowNode, t9SinkNode);
+                var r9 = graph.FindMaxFlowFordFulkerson();
                 sb.AppendLine($"Maximum flow value: {r9?.maxFlow ?? 0}");
                 if (r9.HasValue)
                 {
+                    sb.AppendLine($"Source: {r9.Value.source}. Sink: {r9.Value.sink}");
                     sb.AppendLine($"Flow list: [{string.Join(", ", r9.Value.flow)}]");
                 }
                 

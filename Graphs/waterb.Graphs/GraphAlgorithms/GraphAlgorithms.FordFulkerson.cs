@@ -5,13 +5,39 @@ public static partial class GraphAlgorithms
     /// <summary>
     /// FordFulkerson
     /// </summary>
-	public static (double maxFlow, List<RibData<TNode>> flow)? FindMaxFlowFordFulkerson<TNode, TData>(
-        this IGraph<TNode, TData> graph, TNode source, TNode sink) where TNode : notnull
+	public static (TNode source, TNode sink, double maxFlow, List<RibData<TNode>> flow)? FindMaxFlowFordFulkerson<TNode, TData>(
+        this IGraph<TNode, TData> graph) where TNode : notnull
     {
-        if (EqualityComparer<TNode>.Default.Equals(source, sink)) return (double.PositiveInfinity, []);
-        
-        var srcIndex = graph.GetIndex(source) ?? throw new ArgumentException($"Source {source} is not exist in graph!");
-        var sinkIndex = graph.GetIndex(sink) ?? throw new ArgumentException($"Sink {sink} is not exist in graph!");
+        int srcIndex = -1, sinkIndex = -1;
+        for (var i = 0; i < graph.Size; i++)
+        {
+            bool hasIncoming = false, hasOutgoing = false;
+            for (var j = 0; j < graph.Size; j++)
+            {
+                if (graph[j][i].HasValue && graph[j][i]!.Value != 0) hasIncoming = true;
+                if (graph[i][j].HasValue && graph[i][j]!.Value != 0) hasOutgoing = true;
+                if (hasIncoming && hasOutgoing) break;
+            }
+
+            switch (hasIncoming)
+            {
+                case false when hasOutgoing:
+                {
+                    if (srcIndex is not -1) throw new ArgumentException("Found more than one candidate for source.");
+                    srcIndex = i;
+                    break;
+                }
+                case true when !hasOutgoing:
+                {
+                    if (sinkIndex is not -1) throw new ArgumentException("Found more than one candidate for sink.");
+                    sinkIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (srcIndex is -1 || sinkIndex is -1)
+            throw new ArgumentException("Can`t identify source or sink..");
         
         var residual = new double[graph.Size][];
         for (var i = 0; i < graph.Size; i++)
@@ -74,6 +100,6 @@ public static partial class GraphAlgorithms
             }
         }
         
-        return (maxFlow, flowEdges);
+        return (graph.Nodes[srcIndex], graph.Nodes[sinkIndex], maxFlow, flowEdges);
     }
 }
