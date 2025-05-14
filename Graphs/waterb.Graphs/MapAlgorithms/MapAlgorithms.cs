@@ -58,12 +58,10 @@ public static partial class MapAlgorithms
         fScore[from] = GraphMap.GetHeuristicsDistance(from, to, metric);
         
         var openSet = new PriorityQueue<(int x, int y), double>();
-        var closedSet = new HashSet<(int x, int y)>();
         openSet.Enqueue(from, fScore[from]);
 
-        while (openSet.TryDequeue(out var current, out var weight) && !current.Equals(to))
+        while (openSet.TryDequeue(out var current, out _) && !current.Equals(to))
         {
-	        closedSet.Add(current);
             var neighbours = graphMap.GetNeighbors(current.x, current.y);
             for (var i = 0; i < neighbours.Count; i++)
             {
@@ -71,12 +69,12 @@ public static partial class MapAlgorithms
                 if (graphMap.TryGetDistance(current, neighbour, out var distance))
                 {
 	                var alt = gScore[current] + distance;
-	                if (alt < gScore.GetValueOrDefault(neighbour, double.PositiveInfinity) || !closedSet.Contains(neighbour))
+	                if (alt < gScore.GetValueOrDefault(neighbour, double.PositiveInfinity))
 	                {
 		                prev[neighbour] = current;
 		                gScore[neighbour] = alt;
 		                fScore[neighbour] = alt + GraphMap.GetHeuristicsDistance(neighbour, to, metric);
-		                if (!closedSet.Contains(neighbour)) openSet.Enqueue(neighbour, fScore[neighbour]);
+		                openSet.Enqueue(neighbour, fScore[neighbour]); 
 	                }
                 }
             }
