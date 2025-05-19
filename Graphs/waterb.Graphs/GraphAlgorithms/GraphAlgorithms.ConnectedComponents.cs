@@ -274,6 +274,8 @@ public static partial class GraphAlgorithms
 	        visited[uIndex] = true;
 	        timeIn[uIndex] = timeLow[uIndex] = currentTime++;
 	        var children = 0;
+	        var isArticulation = false;
+			
 	        for (var vIndex = 0; vIndex < graph.Size; vIndex++)
 	        {
 		        if (!graph[uIndex][vIndex].HasValue) continue;
@@ -285,9 +287,9 @@ public static partial class GraphAlgorithms
 			        children++;
 			        Dfs(vIndex, graph, visited, parent, timeIn, timeLow, joints, bridges, ref currentTime);
 			        timeLow[uIndex] = Math.Min(timeLow[uIndex], timeLow[vIndex]);
-			        
+
 			        if (parent[uIndex].HasValue && timeLow[vIndex] >= timeIn[uIndex])
-				        joints.Joints.Add(graph.Nodes[uIndex]);
+				        isArticulation = true;
 			        if (timeLow[vIndex] > timeIn[uIndex])
 				        bridges.Bridges.Add((graph.Nodes[uIndex], graph.Nodes[vIndex]));
 		        }
@@ -297,7 +299,8 @@ public static partial class GraphAlgorithms
 		        }
 	        }
 	        
-	        if (!parent[uIndex].HasValue && children > 1) joints.Joints.Add(graph.Nodes[uIndex]);
+	        if (!parent[uIndex].HasValue && children > 1 || isArticulation)
+		        joints.Joints.Add(graph.Nodes[uIndex]);
         }
     }
 }

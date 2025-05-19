@@ -58,9 +58,17 @@ public static partial class GraphAlgorithms
         
         for (var i = 0; i < graph.Size; i++)
         {
-            if (Math.Abs(data.nodesEccentricity[graph.Nodes[i]] - data.diameter) <= double.Epsilon)
+            if (Math.Abs(data.nodesEccentricity[graph.Nodes[i]] - data.diameter) <= double.Epsilon ||
+                double.IsPositiveInfinity(data.nodesEccentricity[graph.Nodes[i]]) &&
+                double.IsPositiveInfinity(data.diameter) ||
+                double.IsNegativeInfinity(data.nodesEccentricity[graph.Nodes[i]]) &&
+                double.IsNegativeInfinity(data.diameter))
                 data.peripheralNodes.Add(graph.Nodes[i]);
-            if (Math.Abs(data.nodesEccentricity[graph.Nodes[i]] - data.radius) <= double.Epsilon)
+            if (Math.Abs(data.nodesEccentricity[graph.Nodes[i]] - data.radius) <= double.Epsilon ||
+                double.IsPositiveInfinity(data.nodesEccentricity[graph.Nodes[i]]) &&
+                double.IsPositiveInfinity(data.diameter) ||
+                double.IsNegativeInfinity(data.nodesEccentricity[graph.Nodes[i]]) &&
+                double.IsNegativeInfinity(data.diameter))
                 data.centralNodes.Add(graph.Nodes[i]);
         }
 
@@ -133,9 +141,17 @@ public static partial class GraphAlgorithms
         
             for (var j = 0; j < component.Nodes.Count; j++)
             {
-                if (Math.Abs(currentData.nodesEccentricity[component.Nodes[j]] - currentData.diameter) <= double.Epsilon)
+                if (Math.Abs(currentData.nodesEccentricity[graph.Nodes[i]] - currentData.diameter) <= double.Epsilon ||
+                    double.IsPositiveInfinity(currentData.nodesEccentricity[graph.Nodes[i]]) &&
+                    double.IsPositiveInfinity(currentData.diameter) ||
+                    double.IsNegativeInfinity(currentData.nodesEccentricity[graph.Nodes[i]]) &&
+                    double.IsNegativeInfinity(currentData.diameter))
                     currentData.peripheralNodes.Add(component.Nodes[j]);
-                if (Math.Abs(currentData.nodesEccentricity[component.Nodes[j]] - currentData.radius) <= double.Epsilon)
+                if (Math.Abs(currentData.nodesEccentricity[graph.Nodes[i]] - currentData.radius) <= double.Epsilon ||
+                    double.IsPositiveInfinity(currentData.nodesEccentricity[graph.Nodes[i]]) &&
+                    double.IsPositiveInfinity(currentData.diameter) ||
+                    double.IsNegativeInfinity(currentData.nodesEccentricity[graph.Nodes[i]]) &&
+                    double.IsNegativeInfinity(currentData.diameter))
                     currentData.centralNodes.Add(component.Nodes[j]);
             }
 
